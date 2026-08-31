@@ -1,273 +1,405 @@
-Retail Website — MD-Driven Development Plan
-Goal
+# The Lehenga Vault — Development Plan
+
+> **How to use this file:** This is the single source of truth for build order.
+> Read it before starting any phase. Tick boxes as you go. Record decisions in
+> the Decision Log at the bottom. Do not start a phase before its dependencies
+> are done.
+
+---
+
+## 1. Product Summary
+
+**The Lehenga Vault** is a bridal, indo-western and occasion-wear retail store
+that operates **two business lines on the same catalogue**:
 
-Build a premium, earthy-neutral retail catalogue website in small, verifiable phases.
+| Line       | Meaning                     | Price shown      |
+| ---------- | --------------------------- | ---------------- |
+| **Rental** | Garment rented for an event | Price per rental |
+| **Sale**   | Garment sold outright       | Purchase price   |
+
+A single product may be **rent-only**, **sale-only**, or **both**. This duality
+is the most important constraint in the whole build — it affects the data model,
+the product card, the filters, and the WhatsApp message. It is designed in from
+Phase 2, not retrofitted later.
+
+**No online payments and no cart.** Every transaction converts to a WhatsApp
+conversation. The website is a premium catalogue plus an enquiry funnel.
+
+### Stack
+
+| Concern    | Choice                                |
+| ---------- | ------------------------------------- |
+| Framework  | Next.js (App Router) + TypeScript     |
+| Styling    | Tailwind CSS                          |
+| Data       | Supabase (Postgres + Auth + Storage)  |
+| Hosting    | Vercel                                |
+| Conversion | WhatsApp deep links                   |
 
-Stack: Next.js + TypeScript + Tailwind + Supabase + Vercel + WhatsApp
+### Brand
 
-Principle: Do not build everything at once. Each phase should leave the project runnable and reviewable.
+- **Palette:** off-white, beige, light brown, muted gold, deep brown.
+- **Type:** editorial serif for headings, clean sans-serif for body.
+- **Feel:** luxurious, restrained, editorial. Minimal shadows, few borders,
+  generous whitespace, imagery does the talking.
+- **Mobile-first is mandatory.** Assume the majority of traffic is a phone
+  arriving from Instagram.
+
+### Target cost
+
+₹0/month recurring at launch, excluding the domain and any usage beyond free
+tiers.
+
+---
 
-Context: Store is "The Lehenga Vault". It is a bridal, indo-western, etc retail store that does rentals as welll as a sales. keep the tone luxurious.
+## 2. Phase Map
+
+| Phase | Name             | Depends on | Ships                                  |
+| ----- | ---------------- | ---------- | -------------------------------------- |
+| 0     | Foundation       | —          | Runnable empty app + design tokens     |
+| 1     | Visual Shell     | 0          | Brand components + style guide page    |
+| 2     | Data Contract    | 0          | Types + mock catalogue (no UI)         |
+| 3     | Homepage         | 1, 2       | Complete landing page                  |
+| 4     | Catalogue        | 3          | Shop, filters, product detail          |
+| 5     | WhatsApp Enquiry | 4          | The business workflow, end to end      |
+| 6     | Supabase         | 5          | Real persistence behind the same types |
+| 7     | Images & Storage | 6          | Real product photography               |
+| 8     | Admin            | 6, 7       | Owner-maintainable catalogue           |
+| 9     | Secondary Pages  | 3          | About, contact, FAQ, policies          |
+| 10    | Production       | all        | Live on the custom domain              |
+
+**Phases 1 and 2 can run in parallel** (one is visual, one is data). Everything
+else is sequential.
+
+> **Note on ordering:** Images (7) comes *before* Admin (8) deliberately — the
+> admin product form needs a working upload pipeline to build against, so the
+> storage decision must already be made.
+
+---
+
+## Phase 0 — Foundation
+
+**Goal:** A clean, runnable project with the design system encoded as tokens.
+
+- [ ] Initialize Next.js App Router + TypeScript
+- [ ] Configure Tailwind
+- [ ] Add fonts (one serif, one sans; self-hosted via `next/font`)
+- [ ] Define colour tokens in Tailwind config — semantic names
+      (`background`, `surface`, `ink`, `muted`, `accent`), not raw colour names
+- [ ] Define type scale and spacing scale
+- [ ] Set up folder structure (see below)
+- [ ] Add `.env.example`
+- [ ] Configure ESLint + Prettier
+- [ ] Verify `npm run dev` and `npm run build` both succeed
+
+**Folder structure:**
+
+```
+src/
+  app/           # routes only
+  components/    # ui/ (primitives) + sections/ (page blocks)
+  lib/           # data access, whatsapp, utils
+  data/          # mock catalogue (phases 2-5)
+  types/         # shared TypeScript types
+```
+
+**Done when:** `npm run build` passes on a clean clone and the tokens are
+defined. Nothing is visible yet — that is expected.
+
+---
+
+## Phase 1 — Visual Shell
+
+**Goal:** Establish the brand in code before any page exists.
+
+- [ ] Container / layout utilities
+- [ ] Typography components (page title, section heading, eyebrow, body, caption)
+- [ ] Button variants (primary, secondary, ghost) + link styles
+- [ ] Navbar (desktop)
+- [ ] Mobile navigation (drawer or full-screen overlay)
+- [ ] Footer
+- [ ] Product card — **must render the rent/sale badge and correct price(s)**
+- [ ] Responsive spacing rhythm
+- [ ] Focus states on every interactive element
+- [ ] `/style-guide` page rendering every component in one place
+
+**Done when:** `/style-guide` looks like the intended brand on a 375px phone and
+a 1440px desktop, and every interactive element is keyboard-reachable with a
+visible focus ring.
+
+> `/style-guide` is a development page. Remove it or block it from indexing
+> before Phase 10.
+
+---
+
+## Phase 2 — Data Contract
+
+**Goal:** Lock the shape of a product *once*, so that Phase 6 swaps the data
+source without touching a single component.
+
+This phase exists specifically to prevent the mock-data rewrite that otherwise
+happens at the Supabase step.
+
+- [ ] Define `Product`, `Category`, `ProductImage`, `Enquiry` types
+- [ ] Model rent/sale duality explicitly (see below)
+- [ ] Write 12-20 realistic mock products across categories
+- [ ] Add placeholder images at the correct aspect ratio (portrait, 3:4)
+- [ ] Build the data-access layer: `getProducts`, `getProductBySlug`,
+      `getCategories`, `getFeaturedProducts`
+- [ ] **All functions are `async` from day one** — even reading mock data — so
+      the Supabase swap is a body change, not a signature change
+
+**Product shape (indicative):**
+
+```ts
+type Availability = 'available' | 'rented_out' | 'sold' | 'coming_soon'
+
+type Product = {
+  id: string
+  slug: string
+  name: string
+  description: string
+  categoryId: string
+  // Duality: at least one of these must be present.
+  rentPrice?: number     // per rental period
+  salePrice?: number
+  sizes: string[]
+  colour: string
+  fabric?: string
+  images: ProductImage[]
+  availability: Availability
+  featured: boolean
+}
+```
+
+**Done when:** Mock data satisfies the types, the data layer returns it, and
+nothing imports from `src/data/` except `src/lib/`.
+
+---
+
+## Phase 3 — Homepage
+
+**Goal:** The first complete public-facing page. Launch-ready without a backend.
+
+- [ ] Hero — full-bleed image, restrained copy, one primary CTA
+- [ ] Brand statement / positioning block
+- [ ] Featured products (pulled through the data layer)
+- [ ] Category / collection section
+- [ ] "Rent or Buy" explainer — this is unusual, so say it plainly
+- [ ] Editorial image + text section
+- [ ] WhatsApp CTA
+- [ ] Full responsive pass
+- [ ] Page metadata (title, description, OG image)
+
+**Done when:** The homepage is something you would send to the shop owner as a
+demo, and it holds up at 375px.
+
+---
 
-Phase 0 — Foundation
+## Phase 4 — Catalogue
+
+**Goal:** Make the catalogue browsable.
+
+- [ ] `/shop` page with product grid
+- [ ] Category filter
+- [ ] **Rent / Buy / Both filter** — the primary axis for this store
+- [ ] Sort (newest, price low to high, price high to low)
+- [ ] Search by name
+- [ ] Filter state reflected in the URL (shareable, back-button safe)
+- [ ] `/shop/[slug]` product detail page
+- [ ] Image gallery on the detail page
+- [ ] Size, colour, fabric, availability displayed
+- [ ] Related products
+- [ ] Empty state (no products match these filters)
+- [ ] Loading and error states
+- [ ] Per-product SEO metadata
+- [ ] 404 page
+
+**Done when:** A user can go homepage → shop → filter → product detail, and
+every filter combination renders something sensible.
+
+---
+
+## Phase 5 — WhatsApp Enquiries
+
+**Goal:** The actual business workflow, end to end.
+
+- [ ] WhatsApp number in env config — never hardcoded in a component
+- [ ] Link builder in `src/lib/whatsapp.ts` with correct URL encoding
+- [ ] Product-level CTA, message prefilled with product name + intent
+- [ ] **Separate rent and buy CTAs** where a product offers both
+- [ ] Sticky mobile CTA on the product page
+- [ ] General enquiry form (name, phone, message) that opens WhatsApp
+- [ ] Graceful behaviour on desktop (WhatsApp Web)
 
-Goal: Get a clean project running.
+**Message templates:**
 
-Initialize Next.js App Router + TypeScript
-
-Configure Tailwind
-
-Add fonts
-
-Create global color/theme tokens
-
-Set up basic folder structure
-
-Add Git repository
-
-Verify npm run dev and production build
-
-Done when: Empty site runs cleanly and the design system is established.
-
-Phase 1 — Visual Shell
-
-Goal: Establish the brand before building pages.
-
-Navbar
-
-Footer
-
-Typography system
-
-Buttons
-
-Links
-
-Section headings
-
-Container/layout utilities
-
-Product card component
-
-Mobile navigation
-
-Responsive spacing
-
-Design: off-white, beige, light brown, muted gold, deep brown. Editorial serif + clean sans-serif. Minimal shadows and restrained borders.
-
-Done when: A simple style/demo page looks like the intended brand on mobile and desktop.
-
-Phase 2 — Homepage
-
-Goal: Build the first complete public-facing page.
-
-Hero
-
-Featured products
-
-Category/collection section
-
-Brand statement
-
-Editorial image/text section
-
-WhatsApp CTA
-
-Responsive behavior
-
-Use mock product data and placeholder images.
-
-Done when: Homepage feels launch-ready without requiring a backend.
-
-Phase 3 — Catalogue
-
-Goal: Make products browsable.
-
-Shop page
-
-Product grid
-
-Category filtering
-
-Search
-
-Sorting
-
-Product detail page
-
-Related products
-
-Product availability state
-
-SEO metadata
-
-Keep products in a local typed data source for now.
-
-Done when: A user can browse from homepage → catalogue → product page.
-
-Phase 4 — WhatsApp Enquiries
-
-Goal: Enable the actual business workflow without payments.
-
-Product-level WhatsApp CTA
-
-Dynamic WhatsApp message
-
-Basic enquiry form
-
-Mobile-friendly CTAs
-
-Example message:
-
-Hi, I'd like to enquire about [Product Name] (SKU: [SKU]). Is it currently available?
-
-Done when: A customer can enquire about any product in one tap.
-
-Phase 5 — Supabase
-
-Goal: Replace mock data with persistent data.
-
-Create Supabase project
-
-Create products table
-
-Create categories table
-
-Create product_images table if required
-
-Create enquiries table
-
-Add Supabase client
-
-Move product queries behind a data-access layer
-
-Configure RLS
-
-Seed initial catalogue
-
-Do not couple UI components directly to Supabase queries.
-
-Done when: Public catalogue works entirely from Supabase.
-
-Phase 6 — Admin
-
-Goal: Let the shop maintain its catalogue without developer involvement.
-
-Admin login
-
-Protected /admin routes
-
-Dashboard
-
-Product list
-
-Add product
-
-Edit product
-
-Delete product
-
-Toggle availability
-
-Manage categories
-
-View/manage enquiries
-
-Use Supabase Auth + RLS for authorization.
-
-Done when: Shop owner can maintain the catalogue independently.
-
-Phase 7 — Images
-
-Goal: Move the shop's Google Drive images into website-ready storage.
-
-Decide whether Supabase Storage is sufficient
-
-Resize/compress existing images
-
-Upload product images
-
-Connect images to products
-
-Use next/image
-
-Verify mobile performance
-
-Do not build Google Drive synchronization unless the business actually needs ongoing automatic sync.
-
-Done when: Real product imagery is live and loads quickly.
-
-Phase 8 — Secondary Pages
-
-Goal: Complete the brand website.
-
-About
-
-Collections
-
-Contact
-
-FAQ
-
-Store information
-
-Google Maps/location CTA
-
-Done when: All public navigation paths are complete.
-
-Phase 9 — Production
-
-Goal: Deploy with minimal recurring infrastructure cost.
-
-Connect GitHub → Vercel
-
-Configure environment variables
-
-Connect custom domain
-
-Configure production Supabase
-
-Add metadata/Open Graph
-
-Add sitemap
-
-Add robots.txt
-
-Test forms and WhatsApp links
-
-Test admin permissions
-
-Test mobile layouts
-
-Run production build
-
-Basic analytics/Search Console
-
-Target infrastructure cost: ₹0/month initially, excluding domain and any usage that exceeds free tiers.
-
-Development Rules
-One phase at a time.
-Before starting a phase, read this file and any relevant *.md spec.
-Do not implement future phases prematurely.
-Keep mock data until the Supabase phase.
-Prefer simple solutions over abstractions that are not currently needed.
-Every phase must leave the app runnable.
-After each phase, update the checklist and document important decisions.
-Do not add dependencies unless there is a clear reason.
-Mobile-first is mandatory.
-No payment system unless explicitly added as a future phase.
-Future / Optional
-
-Online payments
-
-Cart
-
-Order tracking
-
-Inventory management
-
-Google Drive automatic sync
-
-Cloudinary if image volume makes Supabase Storage unsuitable
-
-These are deliberately out of scope for the initial launch.
+```
+Rent: Hi, I would like to enquire about renting [Product Name] ([SKU]).
+      Is it available for my date?
+
+Buy:  Hi, I would like to enquire about purchasing [Product Name] ([SKU]).
+      Is it currently available?
+```
+
+**Done when:** Any product can be enquired about in one tap on a real phone,
+with the message arriving correctly formatted. Test on an actual device.
+
+---
+
+## Phase 6 — Supabase
+
+**Goal:** Replace mock data with persistence. **No component should change.**
+
+- [ ] Create Supabase project
+- [ ] Tables: `categories`, `products`, `product_images`, `enquiries`
+- [ ] Model rent/sale as nullable price columns with a check constraint
+      ensuring at least one is set
+- [ ] Indexes on `slug`, `category_id`, `availability`
+- [ ] Row Level Security: public read on catalogue, insert-only on `enquiries`,
+      everything else authenticated
+- [ ] Supabase client (server-side for reads)
+- [ ] Swap the data-access layer bodies — signatures stay identical
+- [ ] Seed the catalogue
+- [ ] Delete `src/data/` mock files
+- [ ] Persist enquiries to the DB alongside the WhatsApp handoff
+
+**Done when:** The public site runs entirely from Supabase and the diff touched
+`src/lib/` and SQL only. If it touched components, Phase 2 was done wrong.
+
+---
+
+## Phase 7 — Images & Storage
+
+**Goal:** Get the shop's real photography (currently in Google Drive) onto the
+site, loading fast.
+
+- [ ] Decide: Supabase Storage vs. Cloudinary — record the reasoning
+- [ ] Export from Google Drive
+- [ ] Resize and compress to web dimensions (portrait 3:4, ~1600px long edge)
+- [ ] Upload and link to products
+- [ ] `next/image` everywhere, correct `sizes`, LCP image prioritised
+- [ ] Blur placeholders
+- [ ] Lighthouse mobile performance check
+
+**Done when:** Real imagery is live and the shop page is usable on a mid-range
+phone over mobile data.
+
+> Do **not** build Google Drive sync. A manual upload flow is correct until the
+> shop proves it needs automation.
+
+---
+
+## Phase 8 — Admin
+
+**Goal:** The owner maintains the catalogue without a developer.
+
+- [ ] Supabase Auth login
+- [ ] `/admin` protected via middleware — verify server-side, not client-side
+- [ ] Dashboard (counts, recent enquiries)
+- [ ] Product list with search
+- [ ] Add / edit / delete product
+- [ ] Image upload from the admin form
+- [ ] Toggle availability (the most-used action — make it one click)
+- [ ] Toggle featured
+- [ ] Manage categories
+- [ ] View and mark enquiries as handled
+- [ ] Confirmation on destructive actions
+
+**Done when:** The shop owner adds a product with photos, start to finish,
+without help. Watch them do it once.
+
+---
+
+## Phase 9 — Secondary Pages
+
+**Goal:** Complete the brand website.
+
+- [ ] About
+- [ ] Collections / lookbook
+- [ ] Contact — address, hours, phone, Google Maps CTA
+- [ ] FAQ
+- [ ] **Rental terms** — deposit, duration, damage policy, fitting
+- [ ] Privacy policy (required once enquiries are stored)
+
+**Done when:** No navigation path dead-ends, and the rental terms are clear
+enough to prevent the same five WhatsApp questions.
+
+---
+
+## Phase 10 — Production
+
+**Goal:** Live, with minimal recurring cost.
+
+- [ ] GitHub → Vercel
+- [ ] Production environment variables
+- [ ] Custom domain + SSL
+- [ ] Production Supabase project (separate from dev)
+- [ ] Metadata + Open Graph across all routes
+- [ ] `sitemap.xml` and `robots.txt`
+- [ ] Remove or noindex `/style-guide`
+- [ ] Test WhatsApp links on a real phone
+- [ ] Test admin permissions while logged out
+- [ ] Verify RLS blocks unauthorised writes
+- [ ] Mobile layout pass on real devices
+- [ ] Lighthouse: performance, accessibility, SEO
+- [ ] Analytics + Google Search Console
+
+**Done when:** The site is live on the custom domain, the owner can log in and
+edit, and a customer can enquire from a phone.
+
+---
+
+## 3. Development Rules
+
+1. **One phase at a time.** Read this file before starting.
+2. **Do not implement future phases early.** Especially payments and cart.
+3. **Every phase leaves the app runnable.** `npm run build` must pass.
+4. **Mobile-first, always.** Design at 375px, then scale up.
+5. **Components never fetch.** They receive props. Only `src/lib/` touches data.
+6. **Keep mock data until Phase 6.** That is what Phase 2 is for.
+7. **Prefer simple over abstract.** Do not build for a requirement you do not
+   have yet.
+8. **No new dependency without a stated reason** in the Decision Log.
+9. **Rent and sale are equals.** Never build a flow that assumes one.
+10. **Secrets in env only.** Nothing sensitive in the client bundle.
+11. **After each phase:** tick the boxes, log decisions, commit.
+
+---
+
+## 4. Out of Scope (Deliberately)
+
+These are not being built for launch. Revisit only when the business asks.
+
+- Online payments and checkout
+- Shopping cart
+- Rental availability calendar / date-based booking
+- Order tracking
+- Inventory management
+- Customer accounts
+- Google Drive automatic sync
+- Multi-language
+
+---
+
+## 5. Open Questions
+
+Resolve before the phase that needs them.
+
+| # | Question                                                    | Needed by |
+| - | ----------------------------------------------------------- | --------- |
+| 1 | Business WhatsApp number?                                    | Phase 5   |
+| 2 | Rental price shown publicly, or "enquire for price"?         | Phase 2   |
+| 3 | Is the rental period fixed (e.g. 3 days) or negotiated?      | Phase 9   |
+| 4 | Domain name registered?                                      | Phase 10  |
+| 5 | How many products at launch? (drives Phase 7 effort)         | Phase 7   |
+| 6 | Who owns the Supabase and Vercel accounts — you or the shop? | Phase 10  |
+
+---
+
+## 6. Decision Log
+
+Record anything a future reader would otherwise have to guess.
+
+| Date | Phase | Decision | Reasoning |
+| ---- | ----- | -------- | --------- |
+|      |       |          |           |

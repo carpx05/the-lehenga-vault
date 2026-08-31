@@ -1,0 +1,10 @@
+{
+  "description": "Showcases a bridal and Indo-Western lehenga collection for rent and purchase with a warm, luxurious design to enhance user shopping experience.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
