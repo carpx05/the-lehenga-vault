@@ -69,10 +69,15 @@ export default function Contact() {
               <a href="tel:+919284953320" className="flex items-center gap-3 text-[#2D2418] hover:text-[#C9A84C] transition-colors">
                 <span className="text-[#C9A84C]">✦</span> +91 92849 53320
               </a>
-              <a href="mailto:hello@thelehengavault.in" className="flex items-center gap-3 text-[#2D2418] hover:text-[#C9A84C] transition-colors">
-                <span className="text-[#C9A84C]">✦</span> hello@thelehengavault.in
+              <a href="mailto:thelehengavault@gmail.com" className="flex items-center gap-3 text-[#2D2418] hover:text-[#C9A84C] transition-colors">
+                <span className="text-[#C9A84C]">✦</span> thelehengavault@gmail.com
               </a>
-              <a href="#" className="flex items-center gap-3 text-[#2D2418] hover:text-[#C9A84C] transition-colors">
+              <a
+                href="https://wa.me/919284953320"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-[#2D2418] hover:text-[#C9A84C] transition-colors"
+              >
                 <span className="text-[#C9A84C]">✦</span> WhatsApp: +91 92849 53320
               </a>
             </div>
@@ -81,13 +86,17 @@ export default function Contact() {
           <div>
             <p className="text-[10px] tracking-[0.3em] uppercase text-[#C9A84C] mb-4 font-medium">Follow</p>
             <div className="flex gap-4">
-              {["Instagram", "Pinterest", "Facebook"].map((s) => (
+              {[
+                { label: "Instagram", href: "https://www.instagram.com/thelehengas1vault/" },
+              ].map(({ label, href }) => (
                 <a
-                  key={s}
-                  href="#"
+                  key={label}
+                  href={href}
+                  target={href.startsWith("http") ? "_blank" : undefined}
+                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
                   className="text-xs tracking-widest uppercase text-[#5C3D1E] hover:text-[#C9A84C] transition-colors"
                 >
-                  {s}
+                  {label}
                 </a>
               ))}
             </div>

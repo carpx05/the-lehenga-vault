@@ -11,9 +11,18 @@ export default function Footer() {
             Where every bride finds her moment. Curated lehengas for the modern Indian bride — to own or to rent, always in timeless style.
           </p>
           <div className="flex gap-4 mt-6">
-            {["Instagram", "Pinterest", "WhatsApp"].map((s) => (
-              <a key={s} href="#" className="text-xs tracking-widest uppercase text-[#8B6A3E] hover:text-[#C9A84C] transition-colors">
-                {s}
+            {[
+              { label: "Instagram", href: "https://www.instagram.com/thelehengas1vault/" },
+              { label: "WhatsApp", href: "https://wa.me/919284953320" },
+            ].map(({ label, href }) => (
+              <a
+                key={label}
+                href={href}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="text-xs tracking-widest uppercase text-[#8B6A3E] hover:text-[#C9A84C] transition-colors"
+              >
+                {label}
               </a>
             ))}
           </div>
