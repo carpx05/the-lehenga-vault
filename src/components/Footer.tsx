@@ -41,20 +41,20 @@ export default function Footer() {
         <div>
           <p className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] mb-5 font-medium">Visit Us</p>
           <address className="not-italic text-sm text-[#C4B49A] leading-relaxed space-y-1">
-            <p>42, Gulmohar Marg</p>
-            <p>Banjara Hills, Hyderabad</p>
-            <p>Telangana — 500 034</p>
-            <p className="mt-4">Mon – Sat, 11am – 8pm</p>
+            <p>Shop no 15, Morning Glory, Tropical Lagoon </p>
+            <p>Anand Nagar, Thane West, Thane </p>
+            <p> Maharashtra - 400615</p>
+            <p className="mt-4">Mon - Sat, 11am - 8pm</p>
             <p>Sunday by appointment</p>
-            <a href="tel:+919876543210" className="block mt-4 hover:text-[#D4B483] transition-colors">
-              +91 98765 43210
+            <a href="tel:+919284953320" className="block mt-4 hover:text-[#D4B483] transition-colors">
+              +91 92849 53320
             </a>
           </address>
         </div>
       </div>
 
       <div className="border-t border-[#5C3D1E] px-6 py-5 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
-        <p className="text-xs text-[#6B5640]">© 2024 The Lehenga Vault. All rights reserved.</p>
+        <p className="text-xs text-[#6B5640]">© 2026 The Lehenga Vault. All rights reserved.</p>
         <p className="text-xs text-[#6B5640]">Crafted with love for the Indian bride.</p>
       </div>
     </footer>

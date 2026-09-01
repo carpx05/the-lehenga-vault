@@ -43,9 +43,9 @@ export default function Contact() {
             <p className="text-[10px] tracking-[0.3em] uppercase text-[#C9A84C] mb-4 font-medium">Our Atelier</p>
             <address className="not-italic space-y-1 text-sm text-[#2D2418] leading-relaxed">
               <p className="font-serif text-lg font-semibold text-[#2D2418] mb-2">The Lehenga Vault</p>
-              <p>42, Gulmohar Marg, First Floor</p>
-              <p>Banjara Hills, Hyderabad</p>
-              <p>Telangana — 500 034</p>
+              <p>Shop no 15, Morning Glory, Tropical Lagoon </p>
+              <p>Anand Nagar, Thane West, Thane </p>
+              <p> Maharashtra - 400615</p>
             </address>
           </div>
 
@@ -53,7 +53,7 @@ export default function Contact() {
             <p className="text-[10px] tracking-[0.3em] uppercase text-[#C9A84C] mb-4 font-medium">Hours</p>
             <div className="space-y-1 text-sm text-[#2D2418]">
               <div className="flex justify-between">
-                <span>Monday – Saturday</span>
+                <span>Monday - Saturday</span>
                 <span className="text-[#8B6A3E]">11am – 8pm</span>
               </div>
               <div className="flex justify-between">
@@ -66,14 +66,14 @@ export default function Contact() {
           <div>
             <p className="text-[10px] tracking-[0.3em] uppercase text-[#C9A84C] mb-4 font-medium">Reach Us</p>
             <div className="space-y-2 text-sm">
-              <a href="tel:+919876543210" className="flex items-center gap-3 text-[#2D2418] hover:text-[#C9A84C] transition-colors">
-                <span className="text-[#C9A84C]">✦</span> +91 98765 43210
+              <a href="tel:+919284953320" className="flex items-center gap-3 text-[#2D2418] hover:text-[#C9A84C] transition-colors">
+                <span className="text-[#C9A84C]">✦</span> +91 92849 53320
               </a>
               <a href="mailto:hello@thelehengavault.in" className="flex items-center gap-3 text-[#2D2418] hover:text-[#C9A84C] transition-colors">
                 <span className="text-[#C9A84C]">✦</span> hello@thelehengavault.in
               </a>
               <a href="#" className="flex items-center gap-3 text-[#2D2418] hover:text-[#C9A84C] transition-colors">
-                <span className="text-[#C9A84C]">✦</span> WhatsApp: +91 98765 43210
+                <span className="text-[#C9A84C]">✦</span> WhatsApp: +91 92849 53320
               </a>
             </div>
           </div>
