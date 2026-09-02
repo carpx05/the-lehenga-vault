@@ -124,7 +124,7 @@ export default function Contact() {
               <p className="text-[#5C3D1E] leading-relaxed text-sm max-w-sm mx-auto">
                 Your appointment request has been received. Our team will reach out within 24 hours to confirm your styling session.
               </p>
-              <p className="text-xs text-[#8B6A3E] mt-8 tracking-wider">The Lehenga Vault · Hyderabad</p>
+              <p className="text-xs text-[#8B6A3E] mt-8 tracking-wider">The Lehenga Vault · Thane</p>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-6">
