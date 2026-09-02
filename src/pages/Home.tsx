@@ -39,7 +39,7 @@ const testimonials = [
     detail: "Festive occasion, 2024",
   },
   {
-    quote: "The Indo-Western pieces are unlike anything I've seen in Hyderabad. Truly curated.",
+    quote: "The Indo-Western pieces are unlike anything I've seen in Thane. Truly curated.",
     name: "Meera Kapoor",
     detail: "Bride, March 2024",
   },
@@ -62,7 +62,7 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-6 w-full grid md:grid-cols-2 gap-8 items-end">
           <div>
             <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-6 font-medium">
-              Hyderabad's Premier Bridal Atelier
+              Thane's Premier Bridal Atelier
             </p>
             <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-semibold text-[#FAF6ED] leading-[0.95] mb-6">
               Dressed for<br />
@@ -109,7 +109,7 @@ export default function Home() {
         <div className="flex whitespace-nowrap animate-[marquee_25s_linear_infinite]">
           {Array(4).fill(null).map((_, i) => (
             <span key={i} className="text-[#FAF6ED] text-xs tracking-[0.4em] uppercase mx-12 font-medium">
-              Bridal · Indo-Western · Rent & Buy · Hyderabad · Curated Luxury · Festive Wear · Lehengas · Sarees · Anarkalis ·
+              Bridal · Indo-Western · Rent & Buy · Thane · Curated Luxury · Festive Wear · Lehengas · Sarees · Anarkalis ·
             </span>
           ))}
         </div>
@@ -185,7 +185,7 @@ export default function Home() {
               <em className="italic text-[#D4B483]">bridal treasures</em>
             </h2>
             <p className="text-[#C4B49A] leading-relaxed mb-4">
-              Born from a belief that every bride deserves her perfect lehenga — whether owned or rented — The Lehenga Vault brings together the finest bridal and Indo-Western wear under one roof in Hyderabad.
+              Born from a belief that every bride deserves her perfect lehenga — whether owned or rented — The Lehenga Vault brings together the finest bridal and Indo-Western wear under one roof in Thane.
             </p>
             <p className="text-[#C4B49A] leading-relaxed mb-8">
               Each piece in our vault is hand-selected by our team of bridal stylists, ensuring that what you wear tells a story as singular as yours.
@@ -200,7 +200,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Services */}
+      {/* Services
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
         <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 text-center font-medium">How we serve you</p>
         <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold text-center mb-16">
@@ -269,7 +269,7 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* Testimonials */}
       <section className="bg-[#EDE3CC] py-20 md:py-28">
@@ -311,7 +311,7 @@ export default function Home() {
             <em className="italic text-[#D4B483]">awaits you.</em>
           </h2>
           <p className="text-[#C4B49A] max-w-lg mx-auto text-sm leading-relaxed mb-10">
-            Book a private styling session at our Hyderabad atelier. Our bridal stylists will guide you through the vault, one piece at a time.
+            Book a private styling session at our Thane atelier. Our bridal stylists will guide you through the vault, one piece at a time.
           </p>
           <Link
             to="/contact"

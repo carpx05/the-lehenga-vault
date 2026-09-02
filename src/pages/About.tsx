@@ -29,7 +29,7 @@ const team = [
   {
     name: "Aisha Qureshi",
     role: "Bridal Styling Lead",
-    note: "Styled 200+ brides across Hyderabad, Mumbai & Delhi.",
+    note: "Styled 200+ brides across Thane, Mumbai & Delhi.",
     img: "https://images.unsplash.com/photo-1503160865267-af4660ce7bf2?w=400&h=400&fit=crop&auto=format",
   },
   {
@@ -77,7 +77,7 @@ export default function About() {
             — Kavya Nair, Founder of The Lehenga Vault
           </p>
           <p className="text-[#5C3D1E] leading-relaxed mt-6">
-            The Lehenga Vault was founded in 2019 in Hyderabad with a simple idea: what if every bride — regardless of budget — could wear a truly spectacular lehenga on her wedding day? What began as a small curated rack of 40 pieces in a boutique studio grew into Hyderabad's most trusted bridal and Indo-Western rental and retail destination.
+            The Lehenga Vault was founded in 2019 in Thane with a simple idea: what if every bride — regardless of budget — could wear a truly spectacular lehenga on her wedding day? What began as a small curated rack of 40 pieces in a boutique studio grew into Thane's most trusted bridal and Indo-Western rental and retail destination.
           </p>
           <p className="text-[#5C3D1E] leading-relaxed">
             Today, our vault houses over 500 pieces from India's finest designers, and our team of stylists has helped more than 200 brides find the one. We work equally with women who are buying their dream piece and those who want to rent a couture look without the couture price tag.

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const rentSteps = [
-  { n: "01", title: "Browse & Select", body: "Explore our online vault or visit our Hyderabad atelier. Filter by occasion, color, and designer." },
+  { n: "01", title: "Browse & Select", body: "Explore our online vault or visit our Thane atelier. Filter by occasion, color, and designer." },
   { n: "02", title: "Book Your Trial", body: "Schedule a private 90-minute styling session. Our bridal stylists will walk you through your shortlisted pieces." },
   { n: "03", title: "Receive & Wear", body: "Your lehenga arrives steam-pressed, packed in our heritage garment bag — 24 hours before your event." },
   { n: "04", title: "Return with Ease", body: "Simply drop off within 48 hours of the event. We handle the rest — cleaning, care, and storage." },
@@ -67,7 +67,7 @@ const faqs = [
     a: "Minor stains are covered under our standard care policy. For significant damage, a repair fee is assessed based on the extent and nature of the damage.",
   },
   {
-    q: "Can I rent for destinations outside Hyderabad?",
+    q: "Can I rent for destinations outside Thane?",
     a: "Yes! We offer courier delivery to Delhi, Mumbai, Bangalore, and Chennai for the Extended Celebration plan. Shipping fees apply.",
   },
   {
@@ -136,7 +136,7 @@ export default function RentBuy() {
             Choose your plan
           </h2>
           <p className="text-center text-[#5C3D1E] text-sm mb-16 max-w-lg mx-auto">
-            All plans include a complimentary trial session at our Hyderabad atelier.
+            All plans include a complimentary trial session at our Thane atelier.
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             {rentPlans.map((plan) => (
