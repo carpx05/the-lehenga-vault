@@ -1,12 +1,28 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react"
+import { Link } from "react-router-dom"
 
 const rentSteps = [
-  { n: "01", title: "Browse & Select", body: "Explore our online vault or visit our Thane atelier. Filter by occasion, color, and designer." },
-  { n: "02", title: "Book Your Trial", body: "Schedule a private 90-minute styling session. Our bridal stylists will walk you through your shortlisted pieces." },
-  { n: "03", title: "Receive & Wear", body: "Your lehenga arrives steam-pressed, packed in our heritage garment bag — 24 hours before your event." },
-  { n: "04", title: "Return with Ease", body: "Simply drop off within 48 hours of the event. We handle the rest — cleaning, care, and storage." },
-];
+  {
+    n: "01",
+    title: "Browse & Select",
+    body: "Explore our online vault or visit our Thane atelier. Filter by occasion, color, and designer.",
+  },
+  {
+    n: "02",
+    title: "Book Your Trial",
+    body: "Schedule a private 90-minute styling session. Our bridal stylists will walk you through your shortlisted pieces.",
+  },
+  {
+    n: "03",
+    title: "Receive & Wear",
+    body: "Your lehenga arrives steam-pressed, packed in our heritage garment bag — 24 hours before your event.",
+  },
+  {
+    n: "04",
+    title: "Return with Ease",
+    body: "Simply drop off within 48 hours of the event. We handle the rest — cleaning, care, and storage.",
+  },
+]
 
 const rentPlans = [
   {
@@ -51,7 +67,7 @@ const rentPlans = [
       "Post-event documentation shoot",
     ],
   },
-];
+]
 
 const faqs = [
   {
@@ -72,12 +88,12 @@ const faqs = [
   },
   {
     q: "How far in advance should I book?",
-    a: "We recommend booking at least 4–6 weeks before your event date. For peak wedding season (October–February), 3 months in advance is ideal.",
+    a: "We recommend booking at least 4-6 weeks before your event date. For peak wedding season (October-February), 3 months in advance is ideal.",
   },
-];
+]
 
 export default function RentBuy() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
     <div className="bg-[#F5EDD8] min-h-screen">
@@ -85,13 +101,17 @@ export default function RentBuy() {
       <div className="bg-[#2D2418] pt-32 pb-16 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-3 font-medium">Flexible luxury</p>
+            <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-3 font-medium">
+              Flexible luxury
+            </p>
             <h1 className="font-serif text-5xl md:text-6xl text-[#EDE3CC] font-semibold leading-tight mb-6">
               Rent or Buy —<br />
               <em className="italic text-[#D4B483]">your choice.</em>
             </h1>
             <p className="text-[#C4B49A] leading-relaxed max-w-md">
-              Own an heirloom. Or wear a dream for the day. The Lehenga Vault gives you both options, always with the same care, craft, and attention to detail.
+              Own an heirloom. Or wear a dream for the day. The Lehenga Vault
+              gives you both options, always with the same care, craft, and
+              attention to detail.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -102,8 +122,12 @@ export default function RentBuy() {
               { label: "Avg. Customer Rating", value: "4.9 ★" },
             ].map((s) => (
               <div key={s.label} className="bg-[#3D3020] p-6">
-                <p className="font-serif text-3xl text-[#D4B483] font-semibold">{s.value}</p>
-                <p className="text-xs tracking-wider uppercase text-[#8B6A3E] mt-1">{s.label}</p>
+                <p className="font-serif text-3xl text-[#D4B483] font-semibold">
+                  {s.value}
+                </p>
+                <p className="text-xs tracking-wider uppercase text-[#8B6A3E] mt-1">
+                  {s.label}
+                </p>
               </div>
             ))}
           </div>
@@ -112,23 +136,29 @@ export default function RentBuy() {
 
       {/* How Renting Works */}
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-        <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium">Rental Process</p>
+        <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium">
+          Rental Process
+        </p>
         <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold mb-16">
           How it works
         </h2>
         <div className="grid md:grid-cols-4 gap-8">
           {rentSteps.map((s) => (
             <div key={s.n} className="relative">
-              <div className="font-serif text-6xl text-[#D4C4A0] font-bold mb-4 select-none">{s.n}</div>
+              <div className="font-serif text-6xl text-[#D4C4A0] font-bold mb-4 select-none">
+                {s.n}
+              </div>
               <div className="w-8 h-px bg-[#C9A84C] mb-4" />
-              <h3 className="font-serif text-xl text-[#2D2418] font-semibold mb-2">{s.title}</h3>
+              <h3 className="font-serif text-xl text-[#2D2418] font-semibold mb-2">
+                {s.title}
+              </h3>
               <p className="text-sm text-[#5C3D1E] leading-relaxed">{s.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Rental Plans */}
+      {/* Rental Plans
       <section className="bg-[#EDE3CC] py-20 md:py-28 px-6">
         <div className="max-w-7xl mx-auto">
           <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium text-center">Rental Plans</p>
@@ -187,7 +217,7 @@ export default function RentBuy() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Buying Section */}
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28 grid md:grid-cols-2 gap-12 md:gap-20 items-center">
@@ -199,16 +229,23 @@ export default function RentBuy() {
           />
         </div>
         <div>
-          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-4 font-medium">Own Forever</p>
+          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-4 font-medium">
+            Own Forever
+          </p>
           <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold leading-tight mb-6">
-            Buy a piece<br />
+            Buy a piece
+            <br />
             <em className="italic text-[#8B6A3E]">built to last generations</em>
           </h2>
           <p className="text-[#5C3D1E] leading-relaxed mb-4">
-            Our purchase collection features hand-picked pieces from labels like Sabyasachi, Manish Malhotra, Anita Dongre, and Tarun Tahiliani — each verified for authenticity and craftsmanship.
+            Our purchase collection features hand-picked pieces from labels like
+            Sabyasachi, Manish Malhotra, Anita Dongre, and Tarun Tahiliani —
+            each verified for authenticity and craftsmanship.
           </p>
           <p className="text-[#5C3D1E] leading-relaxed mb-8">
-            Every purchase includes alteration support, a post-purchase care guide, and a heritage preservation bag designed for long-term storage.
+            Every purchase includes alteration support, a post-purchase care
+            guide, and a heritage preservation bag designed for long-term
+            storage.
           </p>
           <ul className="space-y-3 mb-10">
             {[
@@ -218,7 +255,10 @@ export default function RentBuy() {
               "Heritage storage bag included",
               "0% interest EMI available",
             ].map((item) => (
-              <li key={item} className="flex items-center gap-3 text-sm text-[#2D2418]">
+              <li
+                key={item}
+                className="flex items-center gap-3 text-sm text-[#2D2418]"
+              >
                 <span className="text-[#C9A84C]">✦</span>
                 {item}
               </li>
@@ -236,8 +276,12 @@ export default function RentBuy() {
       {/* FAQ */}
       <section className="bg-[#EDE3CC] py-20 px-6">
         <div className="max-w-3xl mx-auto">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium text-center">Common Questions</p>
-          <h2 className="font-serif text-4xl text-[#2D2418] font-semibold text-center mb-12">FAQs</h2>
+          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium text-center">
+            Common Questions
+          </p>
+          <h2 className="font-serif text-4xl text-[#2D2418] font-semibold text-center mb-12">
+            FAQs
+          </h2>
           <div className="space-y-2">
             {faqs.map((faq, i) => (
               <div key={i} className="bg-[#F5EDD8] border border-[#D4C4A0]">
@@ -245,12 +289,22 @@ export default function RentBuy() {
                   className="w-full text-left px-6 py-5 flex items-start justify-between gap-4"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 >
-                  <span className="font-serif text-base text-[#2D2418] font-medium">{faq.q}</span>
-                  <span className={`text-[#C9A84C] flex-shrink-0 transition-transform text-lg ${openFaq === i ? "rotate-45" : ""}`}>+</span>
+                  <span className="font-serif text-base text-[#2D2418] font-medium">
+                    {faq.q}
+                  </span>
+                  <span
+                    className={`text-[#C9A84C] flex-shrink-0 transition-transform text-lg ${
+                      openFaq === i ? "rotate-45" : ""
+                    }`}
+                  >
+                    +
+                  </span>
                 </button>
                 {openFaq === i && (
                   <div className="px-6 pb-5">
-                    <p className="text-sm text-[#5C3D1E] leading-relaxed">{faq.a}</p>
+                    <p className="text-sm text-[#5C3D1E] leading-relaxed">
+                      {faq.a}
+                    </p>
                   </div>
                 )}
               </div>
@@ -259,5 +313,5 @@ export default function RentBuy() {
         </div>
       </section>
     </div>
-  );
+  )
 }

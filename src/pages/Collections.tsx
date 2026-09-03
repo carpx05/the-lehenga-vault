@@ -1,115 +1,32 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { useProducts } from "../context/ProductContext"
+import OptimizedImage from "../components/OptimizedImage"
 
-const filters = ["All", "Bridal", "Indo-Western", "Festive", "Reception"];
-
-const pieces = [
-  {
-    id: 1,
-    title: "Crimson Heirloom",
-    designer: "Tarun Tahiliani",
-    price: "₹68,000",
-    rent: "₹8,500",
-    tag: "Bridal",
-    available: true,
-    img: "https://images.unsplash.com/photo-1654764746225-e63f5e90facd?w=500&h=700&fit=crop&auto=format",
-  },
-  {
-    id: 2,
-    title: "Golden Hour",
-    designer: "Anita Dongre",
-    price: "₹55,000",
-    rent: "₹6,500",
-    tag: "Indo-Western",
-    available: true,
-    img: "https://images.unsplash.com/photo-1610047614256-023d7c028d0b?w=500&h=700&fit=crop&auto=format",
-  },
-  {
-    id: 3,
-    title: "Pearl & Zari",
-    designer: "Sabyasachi",
-    price: "₹1,20,000",
-    rent: "₹14,000",
-    tag: "Bridal",
-    available: false,
-    img: "https://images.unsplash.com/photo-1570212773364-e30cd076539e?w=500&h=700&fit=crop&auto=format",
-  },
-  {
-    id: 4,
-    title: "Ivory & Golds",
-    designer: "Manish Malhotra",
-    price: "₹88,000",
-    rent: "₹10,500",
-    tag: "Reception",
-    available: true,
-    img: "https://images.unsplash.com/photo-1629118477133-b8b1499f2b8a?w=500&h=700&fit=crop&auto=format",
-  },
-  {
-    id: 5,
-    title: "Rose Mist",
-    designer: "Rimple & Harpreet",
-    price: "₹42,000",
-    rent: "₹5,200",
-    tag: "Festive",
-    available: true,
-    img: "https://images.unsplash.com/photo-1610047520958-b42ebcd2f6cb?w=500&h=700&fit=crop&auto=format",
-  },
-  {
-    id: 6,
-    title: "Midnight Dusk",
-    designer: "Tarun Tahiliani",
-    price: "₹76,000",
-    rent: "₹9,200",
-    tag: "Bridal",
-    available: true,
-    img: "https://images.unsplash.com/photo-1677691257363-eebd2abeafec?w=500&h=700&fit=crop&auto=format",
-  },
-  {
-    id: 7,
-    title: "Desert Sand",
-    designer: "Anita Dongre",
-    price: "₹38,000",
-    rent: "₹4,800",
-    tag: "Indo-Western",
-    available: true,
-    img: "https://images.unsplash.com/photo-1571908599407-cdb918ed83bf?w=500&h=700&fit=crop&auto=format",
-  },
-  {
-    id: 8,
-    title: "Saffron Bloom",
-    designer: "Falguni Shane Peacock",
-    price: "₹95,000",
-    rent: "₹11,800",
-    tag: "Reception",
-    available: false,
-    img: "https://images.unsplash.com/photo-1740674570259-a47d713a2976?w=500&h=700&fit=crop&auto=format",
-  },
-  {
-    id: 9,
-    title: "Emerald Whisper",
-    designer: "Sabyasachi",
-    price: "₹1,45,000",
-    rent: "₹16,500",
-    tag: "Bridal",
-    available: true,
-    img: "https://images.unsplash.com/photo-1707576618343-26a1b377ca7a?w=500&h=700&fit=crop&auto=format",
-  },
-];
+const filters = ["All", "Bridal", "Indo-Western", "Festive", "Reception"]
 
 export default function Collections() {
-  const [active, setActive] = useState("All");
+  const { products } = useProducts()
+  const [active, setActive] = useState("All")
 
-  const filtered = active === "All" ? pieces : pieces.filter((p) => p.tag === active);
+  const filtered =
+    active === "All" ? products : products.filter((p) => p.tag === active)
 
   return (
     <div className="bg-[#F5EDD8] min-h-screen">
       {/* Page Header */}
       <div className="bg-[#EDE3CC] pt-32 pb-16 px-6">
         <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.4em] uppercase text-[#8B6A3E] mb-3 font-medium">The Lehenga Vault</p>
-          <h1 className="font-serif text-5xl md:text-6xl text-[#2D2418] font-semibold">Our Collections</h1>
+          <p className="text-[10px] tracking-[0.4em] uppercase text-[#8B6A3E] mb-3 font-medium">
+            The Lehenga Vault
+          </p>
+          <h1 className="font-serif text-5xl md:text-6xl text-[#2D2418] font-semibold">
+            Our Collections
+          </h1>
           <p className="text-[#5C3D1E] mt-4 max-w-xl leading-relaxed">
-            Hand-curated pieces from India's finest designers. Each lehenga in our vault is chosen for its craftsmanship, heritage, and timeless beauty.
+            Hand-curated pieces from India's finest designers. Each lehenga in
+            our vault is chosen for its craftsmanship, heritage, and timeless
+            beauty.
           </p>
         </div>
       </div>
@@ -140,8 +57,9 @@ export default function Collections() {
           {filtered.map((piece) => (
             <div key={piece.id} className="group">
               <div className="relative aspect-[3/4] overflow-hidden bg-[#EDE3CC]">
-                <img
+                <OptimizedImage
                   src={piece.img}
+                  thumbnail={piece.thumbnail}
                   alt={piece.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -167,16 +85,28 @@ export default function Collections() {
                 </div>
               </div>
               <div className="pt-4">
-                <p className="font-serif text-lg text-[#2D2418] font-semibold">{piece.title}</p>
-                <p className="text-xs text-[#8B6A3E] mt-0.5 tracking-wider">{piece.designer}</p>
+                <p className="font-serif text-lg text-[#2D2418] font-semibold">
+                  {piece.title}
+                </p>
+                <p className="text-xs text-[#8B6A3E] mt-0.5 tracking-wider">
+                  {piece.designer}
+                </p>
                 <div className="flex items-center justify-between mt-3">
                   <div>
-                    <p className="text-xs text-[#8B6A3E] uppercase tracking-wider">Buy</p>
-                    <p className="font-serif text-base text-[#2D2418] font-medium">{piece.price}</p>
+                    <p className="text-xs text-[#8B6A3E] uppercase tracking-wider">
+                      Buy
+                    </p>
+                    <p className="font-serif text-base text-[#2D2418] font-medium">
+                      {piece.price}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-[#8B6A3E] uppercase tracking-wider">Rent</p>
-                    <p className="font-serif text-base text-[#8B6A3E] font-medium">{piece.rent}</p>
+                    <p className="text-xs text-[#8B6A3E] uppercase tracking-wider">
+                      Rent
+                    </p>
+                    <p className="font-serif text-base text-[#8B6A3E] font-medium">
+                      {piece.rent}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -186,7 +116,9 @@ export default function Collections() {
 
         {/* Load more placeholder */}
         <div className="mt-16 text-center border-t border-[#D4C4A0] pt-10">
-          <p className="text-sm text-[#8B6A3E] mb-4">Showing {filtered.length} of 60+ pieces in our vault</p>
+          <p className="text-sm text-[#8B6A3E] mb-4">
+            Showing {filtered.length} of 60+ pieces in our vault
+          </p>
           <Link
             to="/contact"
             className="inline-block px-8 py-3.5 border border-[#2D2418] text-[#2D2418] text-xs tracking-widest uppercase font-medium hover:bg-[#2D2418] hover:text-[#FAF6ED] transition-all"
@@ -196,5 +128,5 @@ export default function Collections() {
         </div>
       </div>
     </div>
-  );
+  )
 }
