@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"
 
 const collections = [
   {
@@ -25,25 +25,28 @@ const collections = [
     tag: "Bridal",
     img: "https://images.unsplash.com/photo-1629118477133-b8b1499f2b8a?w=600&h=800&fit=crop&auto=format",
   },
-];
+]
 
 const testimonials = [
   {
-    quote: "Finding my bridal lehenga at The Lehenga Vault felt like a dream. The team understood exactly what I wanted.",
+    quote:
+      "Finding my bridal lehenga at The Lehenga Vault felt like a dream. The team understood exactly what I wanted.",
     name: "Priya Sharma",
     detail: "Bride, December 2023",
   },
   {
-    quote: "Renting was seamless and the quality was stunning. Every guest thought I owned it!",
+    quote:
+      "Renting was seamless and the quality was stunning. Every guest thought I owned it!",
     name: "Ananya Reddy",
     detail: "Festive occasion, 2024",
   },
   {
-    quote: "The Indo-Western pieces are unlike anything I've seen in Thane. Truly curated.",
+    quote:
+      "The Indo-Western pieces are unlike anything I've seen in Thane. Truly curated.",
     name: "Meera Kapoor",
     detail: "Bride, March 2024",
   },
-];
+]
 
 export default function Home() {
   return (
@@ -65,8 +68,10 @@ export default function Home() {
               Thane's Premier Bridal Atelier
             </p>
             <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-semibold text-[#FAF6ED] leading-[0.95] mb-6">
-              Dressed for<br />
-              <em className="italic text-[#D4B483]">the moment</em><br />
+              Dressed for
+              <br />
+              <em className="italic text-[#D4B483]">the moment</em>
+              <br />
               of a lifetime.
             </h1>
             <div className="flex gap-4 mt-8">
@@ -91,8 +96,12 @@ export default function Home() {
               ["10+", "Designer Labels"],
             ].map(([num, label]) => (
               <div key={label} className="text-right">
-                <p className="font-serif text-4xl text-[#D4B483] font-semibold">{num}</p>
-                <p className="text-xs tracking-[0.2em] uppercase text-[#C4B49A]">{label}</p>
+                <p className="font-serif text-4xl text-[#D4B483] font-semibold">
+                  {num}
+                </p>
+                <p className="text-xs tracking-[0.2em] uppercase text-[#C4B49A]">
+                  {label}
+                </p>
               </div>
             ))}
           </div>
@@ -100,18 +109,26 @@ export default function Home() {
 
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
           <div className="w-px h-12 bg-[#C9A84C]/50 animate-pulse" />
-          <p className="text-[9px] tracking-[0.4em] uppercase text-[#C9A84C]">Scroll</p>
+          <p className="text-[9px] tracking-[0.4em] uppercase text-[#C9A84C]">
+            Scroll
+          </p>
         </div>
       </section>
 
       {/* Marquee */}
       <div className="bg-[#C9A84C] py-3 overflow-hidden">
         <div className="flex whitespace-nowrap animate-[marquee_25s_linear_infinite]">
-          {Array(4).fill(null).map((_, i) => (
-            <span key={i} className="text-[#FAF6ED] text-xs tracking-[0.4em] uppercase mx-12 font-medium">
-              Bridal · Indo-Western · Rent & Buy · Thane · Curated Luxury · Festive Wear · Lehengas · Sarees · Anarkalis ·
-            </span>
-          ))}
+          {Array(4)
+            .fill(null)
+            .map((_, i) => (
+              <span
+                key={i}
+                className="text-[#FAF6ED] text-xs tracking-[0.4em] uppercase mx-12 font-medium"
+              >
+                Bridal · Indo-Western · Rent & Buy · Thane · Curated Luxury ·
+                Festive Wear · Lehengas · Sarees · Anarkalis ·
+              </span>
+            ))}
         </div>
       </div>
 
@@ -119,8 +136,14 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
         <div className="flex items-end justify-between mb-12">
           <div>
-            <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3">Featured</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold">This Season's<br />Edit</h2>
+            <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3">
+              Featured
+            </p>
+            <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold">
+              This Season's
+              <br />
+              Edit
+            </h2>
           </div>
           <Link
             to="/collections"
@@ -134,9 +157,15 @@ export default function Home() {
           {collections.map((c, i) => (
             <div
               key={c.title}
-              className={`group relative overflow-hidden bg-[#EDE3CC] ${i === 0 ? "md:row-span-2" : ""}`}
+              className={`group relative overflow-hidden bg-[#EDE3CC] ${
+                i === 0 ? "md:row-span-2" : ""
+              }`}
             >
-              <div className={`relative overflow-hidden ${i === 0 ? "aspect-[3/4] md:h-full" : "aspect-[3/4]"}`}>
+              <div
+                className={`relative overflow-hidden ${
+                  i === 0 ? "aspect-[3/4] md:h-full" : "aspect-[3/4]"
+                }`}
+              >
                 <img
                   src={c.img}
                   alt={c.title}
@@ -156,7 +185,9 @@ export default function Home() {
                 </p>
               </div>
               <div className="p-4 bg-[#EDE3CC]">
-                <p className="font-serif text-base text-[#2D2418] font-medium">{c.title}</p>
+                <p className="font-serif text-base text-[#2D2418] font-medium">
+                  {c.title}
+                </p>
                 <p className="text-xs text-[#8B6A3E] mt-0.5">{c.subtitle}</p>
               </div>
             </div>
@@ -179,16 +210,23 @@ export default function Home() {
             <div className="absolute -top-6 -left-6 w-20 h-20 bg-[#C9A84C]/10 hidden md:block" />
           </div>
           <div>
-            <p className="text-[10px] tracking-[0.35em] uppercase text-[#C9A84C] mb-4 font-medium">Our Story</p>
+            <p className="text-[10px] tracking-[0.35em] uppercase text-[#C9A84C] mb-4 font-medium">
+              Our Story
+            </p>
             <h2 className="font-serif text-4xl md:text-5xl text-[#EDE3CC] font-semibold leading-tight mb-6">
-              A vault of timeless<br />
+              A vault of timeless
+              <br />
               <em className="italic text-[#D4B483]">bridal treasures</em>
             </h2>
             <p className="text-[#C4B49A] leading-relaxed mb-4">
-              Born from a belief that every bride deserves her perfect lehenga — whether owned or rented — The Lehenga Vault brings together the finest bridal and Indo-Western wear under one roof in Thane.
+              Born from a belief that every bride deserves her perfect lehenga —
+              whether owned or rented — The Lehenga Vault brings together the
+              finest bridal and Indo-Western wear under one roof in Thane.
             </p>
             <p className="text-[#C4B49A] leading-relaxed mb-8">
-              Each piece in our vault is hand-selected by our team of bridal stylists, ensuring that what you wear tells a story as singular as yours.
+              Each piece in our vault is hand-selected by our team of bridal
+              stylists, ensuring that what you wear tells a story as singular as
+              yours.
             </p>
             <Link
               to="/about"
@@ -274,7 +312,9 @@ export default function Home() {
       {/* Testimonials */}
       <section className="bg-[#EDE3CC] py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-6">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 text-center font-medium">Voices from the vault</p>
+          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 text-center font-medium">
+            Voices from the vault
+          </p>
           <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold text-center mb-16">
             What our brides say
           </h2>
@@ -284,10 +324,16 @@ export default function Home() {
                 <span className="font-serif text-6xl text-[#C9A84C]/30 absolute top-4 left-6 leading-none select-none">
                   "
                 </span>
-                <p className="text-[#2D2418] leading-relaxed text-sm relative z-10 pt-6">{t.quote}</p>
+                <p className="text-[#2D2418] leading-relaxed text-sm relative z-10 pt-6">
+                  {t.quote}
+                </p>
                 <div className="mt-6 pt-6 border-t border-[#D4C4A0]">
-                  <p className="font-serif text-base font-semibold text-[#2D2418]">{t.name}</p>
-                  <p className="text-xs tracking-wider uppercase text-[#8B6A3E] mt-0.5">{t.detail}</p>
+                  <p className="font-serif text-base font-semibold text-[#2D2418]">
+                    {t.name}
+                  </p>
+                  <p className="text-xs tracking-wider uppercase text-[#8B6A3E] mt-0.5">
+                    {t.detail}
+                  </p>
                 </div>
               </div>
             ))}
@@ -305,13 +351,17 @@ export default function Home() {
           />
         </div>
         <div className="relative text-center px-6">
-          <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-4 font-medium">Begin your journey</p>
+          <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-4 font-medium">
+            Begin your journey
+          </p>
           <h2 className="font-serif text-4xl md:text-6xl text-[#EDE3CC] font-semibold mb-6">
-            Your bridal moment<br />
+            Your bridal moment
+            <br />
             <em className="italic text-[#D4B483]">awaits you.</em>
           </h2>
           <p className="text-[#C4B49A] max-w-lg mx-auto text-sm leading-relaxed mb-10">
-            Book a private styling session at our Thane atelier. Our bridal stylists will guide you through the vault, one piece at a time.
+            Book a private styling session at our Thane atelier. Our bridal
+            stylists will guide you through the vault, one piece at a time.
           </p>
           <Link
             to="/contact"
@@ -329,5 +379,5 @@ export default function Home() {
         }
       `}</style>
     </div>
-  );
+  )
 }

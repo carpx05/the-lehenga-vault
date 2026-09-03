@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState } from "react"
+import { Link, useLocation } from "react-router-dom"
 
 const links = [
   { to: "/", label: "Home" },
@@ -7,18 +7,22 @@ const links = [
   { to: "/rent-buy", label: "Rent & Buy" },
   { to: "/about", label: "Our Story" },
   { to: "/contact", label: "Contact" },
-];
+]
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-  const { pathname } = useLocation();
+  const [open, setOpen] = useState(false)
+  const { pathname } = useLocation()
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#F5EDD8]/90 backdrop-blur-sm border-b border-[#D4C4A0]">
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16 md:h-20">
         <Link to="/" className="flex flex-col leading-none">
-          <span className="font-serif text-xl md:text-2xl font-semibold text-[#2D2418] tracking-wide">The Lehenga Vault</span>
-          <span className="text-[10px] tracking-[0.25em] uppercase text-[#8B6A3E] font-light">Bridal · Indo-Western · Luxury</span>
+          <span className="font-serif text-xl md:text-2xl font-semibold text-[#2D2418] tracking-wide">
+            The Lehenga Vault
+          </span>
+          <span className="text-[10px] tracking-[0.25em] uppercase text-[#8B6A3E] font-light">
+            Bridal · Indo-Western · Luxury
+          </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -49,9 +53,21 @@ export default function Navbar() {
           aria-label="Toggle menu"
         >
           <div className="flex flex-col gap-1.5">
-            <span className={`block w-6 h-px bg-current transition-all ${open ? "rotate-45 translate-y-2" : ""}`} />
-            <span className={`block w-6 h-px bg-current transition-all ${open ? "opacity-0" : ""}`} />
-            <span className={`block w-6 h-px bg-current transition-all ${open ? "-rotate-45 -translate-y-2" : ""}`} />
+            <span
+              className={`block w-6 h-px bg-current transition-all ${
+                open ? "rotate-45 translate-y-2" : ""
+              }`}
+            />
+            <span
+              className={`block w-6 h-px bg-current transition-all ${
+                open ? "opacity-0" : ""
+              }`}
+            />
+            <span
+              className={`block w-6 h-px bg-current transition-all ${
+                open ? "-rotate-45 -translate-y-2" : ""
+              }`}
+            />
           </div>
         </button>
       </div>
@@ -80,5 +96,5 @@ export default function Navbar() {
         </div>
       )}
     </header>
-  );
+  )
 }

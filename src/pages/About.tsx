@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"
 
 const values = [
   {
@@ -17,7 +17,7 @@ const values = [
     title: "The human touch",
     body: "Every appointment is led by a dedicated stylist. We do not believe in a 'rack and browse' experience — our job is to understand your story and find the outfit that tells it.",
   },
-];
+]
 
 const team = [
   {
@@ -38,7 +38,7 @@ const team = [
     note: "Direct relationships with 30+ Indian designer labels.",
     img: "https://images.unsplash.com/photo-1610048869310-d889ff25c374?w=400&h=400&fit=crop&auto=format",
   },
-];
+]
 
 export default function About() {
   return (
@@ -47,9 +47,12 @@ export default function About() {
       <div className="relative bg-[#2D2418] pt-32 pb-0 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-end pb-0">
           <div className="pb-16 md:pb-24">
-            <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-4 font-medium">Our Story</p>
+            <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-4 font-medium">
+              Our Story
+            </p>
             <h1 className="font-serif text-5xl md:text-6xl text-[#EDE3CC] font-semibold leading-tight">
-              Built from a love<br />
+              Built from a love
+              <br />
               of the <em className="italic text-[#D4B483]">Indian bride.</em>
             </h1>
           </div>
@@ -67,20 +70,32 @@ export default function About() {
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28 grid md:grid-cols-12 gap-10">
         <div className="md:col-span-3">
           <div className="w-8 h-px bg-[#C9A84C] mb-4" />
-          <p className="text-xs tracking-[0.3em] uppercase text-[#8B6A3E] font-medium">Founded 2019</p>
+          <p className="text-xs tracking-[0.3em] uppercase text-[#8B6A3E] font-medium">
+            Founded 2019
+          </p>
         </div>
         <div className="md:col-span-9 space-y-6">
           <p className="font-serif text-2xl md:text-3xl text-[#2D2418] leading-relaxed font-medium">
-            "I watched my sister spend three weekends in bridal stores, overwhelmed by options that felt either too generic or entirely out of budget. That weekend, I decided to build something different."
+            "I watched my sister spend three weekends in bridal stores,
+            overwhelmed by options that felt either too generic or entirely out
+            of budget. That weekend, I decided to build something different."
           </p>
           <p className="text-[#5C3D1E] leading-relaxed">
             — Kavya Nair, Founder of The Lehenga Vault
           </p>
           <p className="text-[#5C3D1E] leading-relaxed mt-6">
-            The Lehenga Vault was founded in 2019 in Thane with a simple idea: what if every bride — regardless of budget — could wear a truly spectacular lehenga on her wedding day? What began as a small curated rack of 40 pieces in a boutique studio grew into Thane's most trusted bridal and Indo-Western rental and retail destination.
+            The Lehenga Vault was founded in 2019 in Thane with a simple idea:
+            what if every bride — regardless of budget — could wear a truly
+            spectacular lehenga on her wedding day? What began as a small
+            curated rack of 40 pieces in a boutique studio grew into Thane's
+            most trusted bridal and Indo-Western rental and retail destination.
           </p>
           <p className="text-[#5C3D1E] leading-relaxed">
-            Today, our vault houses over 500 pieces from India's finest designers, and our team of stylists has helped more than 200 brides find the one. We work equally with women who are buying their dream piece and those who want to rent a couture look without the couture price tag.
+            Today, our vault houses over 500 pieces from India's finest
+            designers, and our team of stylists has helped more than 200 brides
+            find the one. We work equally with women who are buying their dream
+            piece and those who want to rent a couture look without the couture
+            price tag.
           </p>
         </div>
       </section>
@@ -88,14 +103,22 @@ export default function About() {
       {/* Values */}
       <section className="bg-[#EDE3CC] py-20 md:py-28 px-6">
         <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium">What we believe</p>
-          <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold mb-16">Our values</h2>
+          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium">
+            What we believe
+          </p>
+          <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold mb-16">
+            Our values
+          </h2>
           <div className="grid md:grid-cols-2 gap-px bg-[#D4C4A0]">
             {values.map((v) => (
               <div key={v.title} className="bg-[#EDE3CC] p-10 md:p-12">
                 <div className="w-6 h-px bg-[#C9A84C] mb-5" />
-                <h3 className="font-serif text-2xl text-[#2D2418] font-semibold mb-4">{v.title}</h3>
-                <p className="text-sm text-[#5C3D1E] leading-relaxed">{v.body}</p>
+                <h3 className="font-serif text-2xl text-[#2D2418] font-semibold mb-4">
+                  {v.title}
+                </h3>
+                <p className="text-sm text-[#5C3D1E] leading-relaxed">
+                  {v.body}
+                </p>
               </div>
             ))}
           </div>
@@ -104,8 +127,12 @@ export default function About() {
 
       {/* Team */}
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-        <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium">The people behind the vault</p>
-        <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold mb-16">Meet the team</h2>
+        <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium">
+          The people behind the vault
+        </p>
+        <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold mb-16">
+          Meet the team
+        </h2>
         <div className="grid md:grid-cols-3 gap-8">
           {team.map((member) => (
             <div key={member.name} className="group">
@@ -117,9 +144,15 @@ export default function About() {
                 />
               </div>
               <div className="w-5 h-px bg-[#C9A84C] mb-3" />
-              <p className="font-serif text-xl text-[#2D2418] font-semibold">{member.name}</p>
-              <p className="text-xs tracking-widest uppercase text-[#C9A84C] mt-1 font-medium">{member.role}</p>
-              <p className="text-sm text-[#5C3D1E] mt-3 leading-relaxed">{member.note}</p>
+              <p className="font-serif text-xl text-[#2D2418] font-semibold">
+                {member.name}
+              </p>
+              <p className="text-xs tracking-widest uppercase text-[#C9A84C] mt-1 font-medium">
+                {member.role}
+              </p>
+              <p className="text-sm text-[#5C3D1E] mt-3 leading-relaxed">
+                {member.note}
+              </p>
             </div>
           ))}
         </div>
@@ -128,10 +161,21 @@ export default function About() {
       {/* Press */}
       <section className="bg-[#2D2418] py-16 px-6">
         <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-[#C9A84C] mb-8 text-center font-medium">As seen in</p>
+          <p className="text-[10px] tracking-[0.35em] uppercase text-[#C9A84C] mb-8 text-center font-medium">
+            As seen in
+          </p>
           <div className="flex flex-wrap justify-center gap-x-12 gap-y-6 items-center">
-            {["Vogue India", "Harper's Bazaar", "Femina", "WeddingWire", "The Hindu"].map((pub) => (
-              <p key={pub} className="font-serif text-xl text-[#5C3D1E] hover:text-[#D4B483] transition-colors cursor-default">
+            {[
+              "Vogue India",
+              "Harper's Bazaar",
+              "Femina",
+              "WeddingWire",
+              "The Hindu",
+            ].map((pub) => (
+              <p
+                key={pub}
+                className="font-serif text-xl text-[#5C3D1E] hover:text-[#D4B483] transition-colors cursor-default"
+              >
                 {pub}
               </p>
             ))}
@@ -141,12 +185,15 @@ export default function About() {
 
       {/* CTA */}
       <section className="py-20 px-6 text-center bg-[#F5EDD8]">
-        <p className="text-[10px] tracking-[0.4em] uppercase text-[#8B6A3E] mb-4 font-medium">Come see us</p>
+        <p className="text-[10px] tracking-[0.4em] uppercase text-[#8B6A3E] mb-4 font-medium">
+          Come see us
+        </p>
         <h2 className="font-serif text-4xl text-[#2D2418] font-semibold mb-4">
           The vault is open.
         </h2>
         <p className="text-[#5C3D1E] text-sm mb-8 max-w-md mx-auto leading-relaxed">
-          We invite you to experience The Lehenga Vault in person. Book a private styling appointment — it's always free, always personal.
+          We invite you to experience The Lehenga Vault in person. Book a
+          private styling appointment — it's always free, always personal.
         </p>
         <Link
           to="/contact"
@@ -156,5 +203,5 @@ export default function About() {
         </Link>
       </section>
     </div>
-  );
+  )
 }
