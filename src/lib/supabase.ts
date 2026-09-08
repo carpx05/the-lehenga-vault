@@ -16,11 +16,16 @@ export function getSavedSupabaseConfig(): SupabaseConfig {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw)
+      const url = parsed.url || envUrl
+      const anonKey = parsed.anonKey || envKey
       return {
-        url: parsed.url || envUrl,
-        anonKey: parsed.anonKey || envKey,
+        url,
+        anonKey,
         bucketName: parsed.bucketName || "lehenga-images",
-        isConnected: Boolean(parsed.isConnected),
+        isConnected:
+          parsed.isConnected !== undefined
+            ? Boolean(parsed.isConnected)
+            : Boolean(url && anonKey),
         autoSync: parsed.autoSync !== undefined ? parsed.autoSync : true,
       }
     }
@@ -28,11 +33,12 @@ export function getSavedSupabaseConfig(): SupabaseConfig {
     // ignore
   }
 
+  const hasEnvCreds = Boolean(envUrl && envKey)
   return {
     url: envUrl,
     anonKey: envKey,
     bucketName: "lehenga-images",
-    isConnected: false,
+    isConnected: hasEnvCreds,
     autoSync: true,
   }
 }
@@ -102,19 +108,58 @@ export async function testSupabaseConnection(
       const { error: listErr } = await client.storage
         .from(config.bucketName)
         .list("", { limit: 1 })
-      if (!listErr || !listErr.message?.toLowerCase().includes("not found")) {
+
+      if (!listErr) {
+        bucketFound = true
+      } else if (
+        listErr.message?.toLowerCase().includes("not found") ||
+        listErr.message?.toLowerCase().includes("does not exist")
+      ) {
+        bucketFound = false
+      } else {
+        // Bucket exists but may have restricted list permissions
         bucketFound = true
       }
     } catch {
-      const { data: buckets } = await client.storage.listBuckets()
-      bucketFound = Boolean(buckets?.some((b) => b.name === config.bucketName))
+      try {
+        const { data: buckets } = await client.storage.listBuckets()
+        bucketFound = Boolean(
+          buckets?.some((b) => b.name === config.bucketName),
+        )
+      } catch {
+        bucketFound = false
+      }
     }
 
-    // 2. Check if tables exist in PostgreSQL
-    const { error: productsTableError } = await client
+    // 2. Check if table exists in PostgreSQL (check lowercase 'products' and capitalized 'Products')
+    let tableFound = false
+    let activeTable = "products"
+    let tableErrorMsg = ""
+
+    const { error: errLower } = await client
       .from("products")
       .select("id")
       .limit(1)
+
+    if (!errLower) {
+      tableFound = true
+      activeTable = "products"
+    } else {
+      // Check capitalized 'Products' (common if created manually in Supabase Dashboard)
+      const { error: errCap } = await client
+        .from("Products")
+        .select("id")
+        .limit(1)
+
+      if (!errCap) {
+        tableFound = true
+        activeTable = "Products"
+      } else {
+        tableErrorMsg = errLower.message || errCap.message || "Unknown error"
+        if (errLower.code) tableErrorMsg += ` [Code: ${errLower.code}]`
+        if (errLower.hint) tableErrorMsg += ` (Hint: ${errLower.hint})`
+      }
+    }
 
     const elapsed = Math.round(performance.now() - startTime)
 
@@ -123,15 +168,22 @@ export async function testSupabaseConnection(
       statusParts.push(`Storage bucket '${config.bucketName}' is active`)
     } else {
       statusParts.push(
-        `Bucket '${config.bucketName}' was not found or inaccessible (ensure it's created and Public in Supabase Storage)`,
+        `Bucket '${config.bucketName}' was not found (ensure it's created and Public in Supabase Storage)`,
       )
     }
 
-    if (!productsTableError) {
-      statusParts.push("Database table 'products' is ready")
+    if (tableFound) {
+      statusParts.push(`Database table '${activeTable}' is connected and ready`)
+    } else if (
+      tableErrorMsg.toLowerCase().includes("policy") ||
+      tableErrorMsg.toLowerCase().includes("permission")
+    ) {
+      statusParts.push(
+        `Table '${activeTable}' exists, but permission was denied (${tableErrorMsg}). Run the SQL snippet below to grant permissions and RLS policies`,
+      )
     } else {
       statusParts.push(
-        "Database table 'products' does not exist yet (run the SQL schema snippet below)",
+        `Database table '${activeTable}' reported: "${tableErrorMsg}". If you already created it, run the SQL snippet below in SQL Editor to grant permissions and reload PostgREST cache`,
       )
     }
 
@@ -194,39 +246,144 @@ export async function uploadImageToSupabase(
 export async function syncProductsToSupabase(
   products: Product[],
   config?: SupabaseConfig,
+): Promise<{ success: boolean count: number error?: string }> {
+  const client = getSupabaseClient(config)
+  if (!client) {
+    return {
+      success: false,
+      count: 0,
+      error: "Supabase client is not configured.",
+    }
+  }
+
+  try {
+    // 1. Format matching the exact Supabase table schema (with buy_price and current_price)
+    const payloadWithBuyPrice = products.map((p) => {
+      const current = p.current_price || p.price || "₹0"
+      const buy = p.buy_price || p.price || current
+
+      return {
+        id: String(p.id),
+        title: p.title,
+        designer: p.designer,
+        buy_price: buy,
+        current_price: current,
+        rent: p.rent || "₹0",
+        tag: p.tag || "Bridal",
+        available: p.available ?? true,
+        img: p.img,
+        thumbnail: p.thumbnail || "",
+        description: p.description || "",
+        sku: p.sku || "",
+        color: p.color || "",
+        fabric: p.fabric || "",
+        size: p.size || "",
+        created_at: p.createdAt || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+    })
+
+    let activeTable = "products"
+    let { error: err1 } = await client
+      .from("products")
+      .upsert(payloadWithBuyPrice, { onConflict: "id" })
+
+    // Check if table 'products' was not found, try capitalized 'Products'
+    if (
+      err1 &&
+      (err1.code === "PGRST205" ||
+        err1.code === "42P01" ||
+        err1.message?.toLowerCase().includes("not find") ||
+        err1.message?.toLowerCase().includes("does not exist"))
+    ) {
+      const resCap = await client
+        .from("Products")
+        .upsert(payloadWithBuyPrice, { onConflict: "id" })
+
+      if (!resCap.error) {
+        return { success: true, count: products.length }
+      }
+      activeTable = "Products"
+      err1 = resCap.error
+    }
+
+    if (!err1) {
+      return { success: true, count: products.length }
+    }
+
+    // 2. If the table doesn't have buy_price / current_price columns, fallback to price
+    if (
+      err1.message?.toLowerCase().includes("buy_price") ||
+      err1.message?.toLowerCase().includes("current_price")
+    ) {
+      const payloadWithPrice = products.map((p) => ({
+        id: String(p.id),
+        title: p.title,
+        designer: p.designer,
+        price: p.current_price || p.price || "₹0",
+        rent: p.rent || "₹0",
+        tag: p.tag || "Bridal",
+        available: p.available ?? true,
+        img: p.img,
+        thumbnail: p.thumbnail || "",
+        description: p.description || "",
+        sku: p.sku || "",
+        color: p.color || "",
+        fabric: p.fabric || "",
+        size: p.size || "",
+        created_at: p.createdAt || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }))
+
+      const { error: err2 } = await client
+        .from(activeTable)
+        .upsert(payloadWithPrice, { onConflict: "id" })
+
+      if (!err2) {
+        return { success: true, count: products.length }
+      }
+
+      console.warn("Supabase products sync error:", err2.message)
+      return { success: false, count: 0, error: err2.message }
+    }
+
+    console.warn("Supabase products sync error:", err1.message)
+    return { success: false, count: 0, error: err1.message }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Database sync error"
+    console.warn("Supabase products sync exception:", msg)
+    return { success: false, count: 0, error: msg }
+  }
+}
+
+/**
+ * Delete a product from Supabase DB table `products`
+ */
+export async function deleteProductFromSupabase(
+  id: string | number,
+  config?: SupabaseConfig,
 ): Promise<boolean> {
   const client = getSupabaseClient(config)
   if (!client) return false
 
   try {
-    const formatted = products.map((p) => ({
-      id: String(p.id),
-      title: p.title,
-      designer: p.designer,
-      price: p.price,
-      rent: p.rent,
-      tag: p.tag,
-      available: p.available,
-      img: p.img,
-      thumbnail: p.thumbnail || "",
-      description: p.description || "",
-      sku: p.sku || "",
-      color: p.color || "",
-      fabric: p.fabric || "",
-      size: p.size || "",
-      updated_at: new Date().toISOString(),
-    }))
+    let { error } = await client.from("products").delete().eq("id", String(id))
 
-    const { error } = await client
-      .from("products")
-      .upsert(formatted, { onConflict: "id" })
+    if (
+      error &&
+      (error.code === "PGRST205" ||
+        error.message?.toLowerCase().includes("not find"))
+    ) {
+      const capRes = await client.from("Products").delete().eq("id", String(id))
+      error = capRes.error
+    }
+
     if (error) {
-      console.warn("Supabase products sync warning:", error.message)
+      console.warn("Supabase delete product error:", error.message)
       return false
     }
     return true
-  } catch (err) {
-    console.warn("Supabase products sync error:", err)
+  } catch {
     return false
   }
 }
@@ -241,30 +398,53 @@ export async function fetchProductsFromSupabase(
   if (!client) return null
 
   try {
-    const { data, error } = await client
+    let { data, error } = await client
       .from("products")
       .select("*")
       .order("created_at", { ascending: false })
+
+    if (
+      error &&
+      (error.code === "PGRST205" ||
+        error.message?.toLowerCase().includes("not find"))
+    ) {
+      const capRes = await client
+        .from("Products")
+        .select("*")
+        .order("created_at", { ascending: false })
+      if (!capRes.error && capRes.data) {
+        data = capRes.data
+        error = null
+      }
+    }
+
     if (error || !data) return null
 
-    return data.map((item) => ({
-      id: item.id,
-      title: item.title,
-      designer: item.designer,
-      price: item.price,
-      rent: item.rent,
-      tag: item.tag,
-      available: Boolean(item.available),
-      img: item.img,
-      thumbnail: item.thumbnail,
-      description: item.description,
-      sku: item.sku,
-      color: item.color,
-      fabric: item.fabric,
-      size: item.size,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at,
-    }))
+    return data.map((item) => {
+      const current = item.current_price || item.price || item.buy_price || "₹0"
+      const buy = item.buy_price || item.price || current
+
+      return {
+        id: item.id,
+        title: item.title,
+        designer: item.designer,
+        price: current,
+        buy_price: buy,
+        current_price: current,
+        rent: item.rent || "₹0",
+        tag: item.tag || "Bridal",
+        available: Boolean(item.available),
+        img: item.img,
+        thumbnail: item.thumbnail || "",
+        description: item.description || "",
+        sku: item.sku || "",
+        color: item.color || "",
+        fabric: item.fabric || "",
+        size: item.size || "",
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+      }
+    })
   } catch {
     return null
   }

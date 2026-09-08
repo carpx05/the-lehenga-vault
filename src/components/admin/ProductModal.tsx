@@ -5,6 +5,7 @@ import {
   uploadImageToSupabase,
   getSavedSupabaseConfig,
 } from "../../lib/supabase"
+import { getPricingDetails, formatCurrency } from "../../lib/pricing"
 import {
   X,
   Upload,
@@ -35,7 +36,9 @@ const DESIGNER_PRESETS = [
   "Other Label",
 ]
 
-const TAG_PRESETS = ["Bridal", "Indo-Western", "Festive", "Reception"]
+import { PRODUCT_CATEGORIES } from "../../types"
+
+const TAG_PRESETS = PRODUCT_CATEGORIES
 
 export default function ProductModal({
   isOpen,
@@ -48,9 +51,21 @@ export default function ProductModal({
     initialData?.designer || "Tarun Tahiliani",
   )
   const [customDesigner, setCustomDesigner] = useState("")
-  const [price, setPrice] = useState(initialData?.price || "₹65,000")
+  const [buyPrice, setBuyPrice] = useState(
+    initialData?.buy_price || initialData?.price || "₹65,000",
+  )
+  const [currentPrice, setCurrentPrice] = useState(
+    initialData?.current_price || initialData?.price || "₹65,000",
+  )
   const [rent, setRent] = useState(initialData?.rent || "₹8,500")
   const [tag, setTag] = useState(initialData?.tag || "Bridal")
+
+  const livePricing = React.useMemo(() => {
+    return getPricingDetails({
+      buy_price: buyPrice,
+      current_price: currentPrice,
+    })
+  }, [buyPrice, currentPrice])
   const [available, setAvailable] = useState(
     initialData?.available !== undefined ? initialData.available : true,
   )
@@ -153,12 +168,17 @@ export default function ProductModal({
     try {
       const finalDesigner =
         designer === "Other Label" && customDesigner ? customDesigner : designer
+      const formattedBuy = formatCurrency(buyPrice)
+      const formattedCurrent = formatCurrency(currentPrice)
+
       const productPayload = {
         ...(initialData ? { id: initialData.id } : {}),
         title: title.trim(),
         designer: finalDesigner,
-        price: price.startsWith("₹") ? price : `₹${price}`,
-        rent: rent.startsWith("₹") ? rent : `₹${rent}`,
+        price: formattedCurrent,
+        buy_price: formattedBuy,
+        current_price: formattedCurrent,
+        rent: formatCurrency(rent),
         tag,
         available,
         img: img.trim(),
@@ -280,16 +300,36 @@ export default function ProductModal({
 
             <div>
               <label className="block text-xs uppercase tracking-widest text-[#5C3D1E] font-medium mb-1.5">
-                Purchase Price (₹) *
+                Original Buy Price (₹) *
               </label>
               <input
                 type="text"
                 required
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                value={buyPrice}
+                onChange={(e) => setBuyPrice(e.target.value)}
+                placeholder="₹85,000"
+                className="w-full px-3.5 py-2.5 bg-[#FAF6ED] border border-[#D4C4A0] text-[#2D2418] text-sm focus:outline-none focus:border-[#C9A84C]"
+              />
+              <p className="text-[10px] text-[#8B6A3E] mt-1">
+                Standard retail price (`buy_price`)
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-[#5C3D1E] font-medium mb-1.5">
+                Current Selling Price (₹) *
+              </label>
+              <input
+                type="text"
+                required
+                value={currentPrice}
+                onChange={(e) => setCurrentPrice(e.target.value)}
                 placeholder="₹68,000"
                 className="w-full px-3.5 py-2.5 bg-[#FAF6ED] border border-[#D4C4A0] text-[#2D2418] text-sm focus:outline-none focus:border-[#C9A84C]"
               />
+              <p className="text-[10px] text-[#8B6A3E] mt-1">
+                Effective price (`current_price`)
+              </p>
             </div>
 
             <div>
@@ -304,7 +344,33 @@ export default function ProductModal({
                 placeholder="₹8,500"
                 className="w-full px-3.5 py-2.5 bg-[#FAF6ED] border border-[#D4C4A0] text-[#2D2418] text-sm focus:outline-none focus:border-[#C9A84C]"
               />
+              <p className="text-[10px] text-[#8B6A3E] mt-1">
+                Rental fee for booking
+              </p>
             </div>
+
+            {/* Live Discount Indicator */}
+            {livePricing.hasDiscount && (
+              <div className="sm:col-span-3 bg-[#FAF6ED] border border-[#C9A84C]/50 p-3 rounded flex items-center justify-between text-xs shadow-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 bg-[#C9A84C]/20 text-[#6E4F28] border border-[#C9A84C]/40 rounded">
+                    Limited Time Discount Active
+                  </span>
+                  <span className="text-neutral-400 line-through">
+                    {livePricing.buyPrice}
+                  </span>
+                  <span className="font-serif font-bold text-[#2D2418] text-sm">
+                    {livePricing.currentPrice}
+                  </span>
+                </div>
+                {livePricing.discountPercent ? (
+                  <span className="text-emerald-700 font-semibold text-xs">
+                    {livePricing.discountPercent}% OFF (Save ₹
+                    {livePricing.discountSavings?.toLocaleString("en-IN")})
+                  </span>
+                ) : null}
+              </div>
+            )}
           </div>
 
           {/* Section 2: Image Pipeline & High-Res Storage Offloading */}

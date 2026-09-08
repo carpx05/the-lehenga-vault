@@ -10,6 +10,7 @@ import {
   getSavedSupabaseConfig,
   syncProductsToSupabase,
   fetchProductsFromSupabase,
+  deleteProductFromSupabase,
 } from "../lib/supabase"
 
 const STORAGE_KEY = "lehenga_vault_inventory_v1"
@@ -20,6 +21,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     title: "Crimson Heirloom",
     designer: "Tarun Tahiliani",
     price: "₹68,000",
+    buy_price: "₹85,000",
+    current_price: "₹68,000",
     rent: "₹8,500",
     tag: "Bridal",
     available: true,
@@ -36,6 +39,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     title: "Golden Hour",
     designer: "Anita Dongre",
     price: "₹55,000",
+    buy_price: "₹65,000",
+    current_price: "₹55,000",
     rent: "₹6,500",
     tag: "Indo-Western",
     available: true,
@@ -52,6 +57,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     title: "Pearl & Zari",
     designer: "Sabyasachi",
     price: "₹1,20,000",
+    buy_price: "₹1,20,000",
+    current_price: "₹1,20,000",
     rent: "₹14,000",
     tag: "Bridal",
     available: false,
@@ -68,6 +75,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     title: "Ivory & Golds",
     designer: "Manish Malhotra",
     price: "₹88,000",
+    buy_price: "₹88,000",
+    current_price: "₹88,000",
     rent: "₹10,500",
     tag: "Reception",
     available: true,
@@ -84,6 +93,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     title: "Rose Mist",
     designer: "Rimple & Harpreet",
     price: "₹42,000",
+    buy_price: "₹48,000",
+    current_price: "₹42,000",
     rent: "₹5,200",
     tag: "Festive",
     available: true,
@@ -100,6 +111,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     title: "Midnight Dusk",
     designer: "Tarun Tahiliani",
     price: "₹76,000",
+    buy_price: "₹76,000",
+    current_price: "₹76,000",
     rent: "₹9,200",
     tag: "Bridal",
     available: true,
@@ -116,6 +129,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     title: "Desert Sand",
     designer: "Anita Dongre",
     price: "₹38,000",
+    buy_price: "₹38,000",
+    current_price: "₹38,000",
     rent: "₹4,800",
     tag: "Indo-Western",
     available: true,
@@ -132,6 +147,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     title: "Saffron Bloom",
     designer: "Falguni Shane Peacock",
     price: "₹95,000",
+    buy_price: "₹1,15,000",
+    current_price: "₹95,000",
     rent: "₹11,800",
     tag: "Reception",
     available: false,
@@ -148,6 +165,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     title: "Emerald Whisper",
     designer: "Sabyasachi",
     price: "₹1,45,000",
+    buy_price: "₹1,45,000",
+    current_price: "₹1,45,000",
     rent: "₹16,500",
     tag: "Bridal",
     available: true,
@@ -158,6 +177,60 @@ export const INITIAL_PRODUCTS: Product[] = [
     color: "Forest Emerald",
     fabric: "Royal Silk Velvet",
     size: "Free Size (Adjustable)",
+  },
+  {
+    id: 10,
+    title: "Noor-e-Kashmir",
+    designer: "Ritu Kumar",
+    price: "₹78,000",
+    buy_price: "₹88,000",
+    current_price: "₹78,000",
+    rent: "₹8,900",
+    tag: "Festive",
+    available: true,
+    img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&h=1100&fit=crop&auto=format",
+    description:
+      "Hand-spun chanderi lehenga adorned with traditional Kashmiri tilla craft and antique sequin borders.",
+    sku: "LV-FE-010",
+    color: "Mulberry Rust",
+    fabric: "Chanderi Silk",
+    size: "S / M",
+  },
+  {
+    id: 11,
+    title: "Celestial Shimmer",
+    designer: "Manish Malhotra",
+    price: "₹1,15,000",
+    buy_price: "₹1,35,000",
+    current_price: "₹1,15,000",
+    rent: "₹13,500",
+    tag: "Reception",
+    available: true,
+    img: "https://images.unsplash.com/photo-1549416878-b9ca95e26903?w=800&h=1100&fit=crop&auto=format",
+    description:
+      "Dramatic architectural trail lehenga with reflective gunmetal sequins and sheer structured corset.",
+    sku: "LV-RC-011",
+    color: "Liquid Platinum",
+    fabric: "Metallic Tulle",
+    size: "M",
+  },
+  {
+    id: 12,
+    title: "Marigold Sunshine",
+    designer: "Sabyasachi",
+    price: "₹65,000",
+    buy_price: "₹65,000",
+    current_price: "₹65,000",
+    rent: "₹7,800",
+    tag: "Indo-Western",
+    available: true,
+    img: "https://images.unsplash.com/photo-1518049362265-d5b2a6467637?w=800&h=1100&fit=crop&auto=format",
+    description:
+      "Sun-kissed turmeric and marigold flared silhouette with hand-screened floral botanicals and gota edges.",
+    sku: "LV-IW-012",
+    color: "Marigold Gold",
+    fabric: "Organza Silk",
+    size: "Free Size",
   },
 ]
 
@@ -172,7 +245,11 @@ interface ProductContextType {
   deleteProduct: (id: string | number) => Promise<void>
   toggleAvailability: (id: string | number) => Promise<void>
   resetToDefault: () => void
-  syncWithSupabase: () => Promise<{ success: boolean count: number }>
+  syncWithSupabase: () => Promise<{
+    success: boolean
+    count: number
+    error?: string
+  }>
   getProductById: (id: string | number) => Product | undefined
 }
 
@@ -185,7 +262,16 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         const parsed = JSON.parse(stored)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed
+          return parsed.map((p: Product) => {
+            const current = p.current_price || p.price || "₹0"
+            const buy = p.buy_price || p.price || current
+            return {
+              ...p,
+              price: current,
+              buy_price: buy,
+              current_price: current,
+            }
+          })
         }
       }
     } catch {
@@ -208,7 +294,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   // Attempt background sync with Supabase if configured
   useEffect(() => {
     const config = getSavedSupabaseConfig()
-    if (config.isConnected && config.url && config.anonKey) {
+    if (config.url && config.anonKey) {
       fetchProductsFromSupabase(config).then((cloudProducts) => {
         if (cloudProducts && cloudProducts.length > 0) {
           setProducts(cloudProducts)
@@ -228,9 +314,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
       setProducts((prev) => [newProduct, ...prev])
 
-      // Background sync to Supabase if enabled
+      // Background sync to Supabase if credentials available
       const config = getSavedSupabaseConfig()
-      if (config.isConnected && config.autoSync) {
+      if (config.url && config.anonKey && config.autoSync) {
         syncProductsToSupabase([newProduct, ...products], config).catch(
           console.warn,
         )
@@ -251,7 +337,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         )
 
         const config = getSavedSupabaseConfig()
-        if (config.isConnected && config.autoSync) {
+        if (config.url && config.anonKey && config.autoSync) {
           syncProductsToSupabase(updated, config).catch(console.warn)
         }
         return updated
@@ -264,8 +350,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     setProducts((prev) => {
       const updated = prev.filter((item) => String(item.id) !== String(id))
       const config = getSavedSupabaseConfig()
-      if (config.isConnected && config.autoSync) {
-        syncProductsToSupabase(updated, config).catch(console.warn)
+      if (config.url && config.anonKey) {
+        deleteProductFromSupabase(id, config).catch(console.warn)
       }
       return updated
     })
@@ -279,7 +365,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           : item,
       )
       const config = getSavedSupabaseConfig()
-      if (config.isConnected && config.autoSync) {
+      if (config.url && config.anonKey && config.autoSync) {
         syncProductsToSupabase(updated, config).catch(console.warn)
       }
       return updated
@@ -295,12 +381,13 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     const config = getSavedSupabaseConfig()
     try {
-      const ok = await syncProductsToSupabase(products, config)
+      const res = await syncProductsToSupabase(products, config)
       setIsLoading(false)
-      return { success: ok, count: products.length }
-    } catch {
+      return res
+    } catch (err: unknown) {
       setIsLoading(false)
-      return { success: false, count: 0 }
+      const msg = err instanceof Error ? err.message : "Database sync error"
+      return { success: false, count: 0, error: msg }
     }
   }, [products])
 
