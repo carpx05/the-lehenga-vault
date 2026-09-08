@@ -96,25 +96,48 @@ export async function testSupabaseConnection(
       auth: { persistSession: false },
     })
 
-    // Check if we can reach storage buckets
-    const { data: buckets, error } = await client.storage.listBuckets()
-    const elapsed = Math.round(performance.now() - startTime)
-
-    if (error) {
-      return {
-        success: false,
-        message: `Supabase returned an error: ${error.message}`,
-        latencyMs: elapsed,
+    // 1. Check storage bucket reachability
+    let bucketFound = false
+    try {
+      const { error: listErr } = await client.storage
+        .from(config.bucketName)
+        .list("", { limit: 1 })
+      if (!listErr || !listErr.message?.toLowerCase().includes("not found")) {
+        bucketFound = true
       }
+    } catch {
+      const { data: buckets } = await client.storage.listBuckets()
+      bucketFound = Boolean(buckets?.some((b) => b.name === config.bucketName))
     }
 
-    const bucketFound = buckets?.some((b) => b.name === config.bucketName)
+    // 2. Check if tables exist in PostgreSQL
+    const { error: productsTableError } = await client
+      .from("products")
+      .select("id")
+      .limit(1)
+
+    const elapsed = Math.round(performance.now() - startTime)
+
+    const statusParts: string[] = []
+    if (bucketFound) {
+      statusParts.push(`Storage bucket '${config.bucketName}' is active`)
+    } else {
+      statusParts.push(
+        `Bucket '${config.bucketName}' was not found or inaccessible (ensure it's created and Public in Supabase Storage)`,
+      )
+    }
+
+    if (!productsTableError) {
+      statusParts.push("Database table 'products' is ready")
+    } else {
+      statusParts.push(
+        "Database table 'products' does not exist yet (run the SQL schema snippet below)",
+      )
+    }
 
     return {
       success: true,
-      message: bucketFound
-        ? `Connected to Supabase! Bucket '${config.bucketName}' is active (${elapsed}ms).`
-        : `Connected to Supabase (${elapsed}ms)! Note: Bucket '${config.bucketName}' not found yet. Make sure it's created and set to Public in Supabase Storage.`,
+      message: `Connected to Supabase (${elapsed}ms)! ${statusParts.join(". ")}.`,
       latencyMs: elapsed,
     }
   } catch (err: unknown) {
