@@ -126,17 +126,18 @@ export default function Home() {
         ease: "power2.out",
       })
 
+      // Cards animate with translateY only (no opacity: 0 lock-in) so they are NEVER invisible
       gsap.from(".collection-card", {
         scrollTrigger: {
-          trigger: ".collections-grid",
-          start: "top 80%",
+          trigger: ".collections-section",
+          start: "top 85%",
           once: true,
         },
-        y: 40,
-        opacity: 0,
-        duration: 0.9,
-        stagger: 0.12,
+        y: 30,
+        duration: 0.8,
+        stagger: 0.1,
         ease: "power2.out",
+        clearProps: "all",
       })
 
       // About Strip section
@@ -323,42 +324,45 @@ export default function Home() {
         </div>
 
         <div className="collections-grid grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-          {collections.map((c, i) => (
+          {collections.map((c) => (
             <div
               key={c.title}
-              className={`collection-card group relative overflow-hidden bg-[#EDE3CC] ${
-                i === 0 ? "md:row-span-2" : ""
-              }`}
+              className="collection-card group relative overflow-hidden bg-[#EDE3CC] border border-[#D4C4A0]/40 transition-all duration-300 hover:shadow-md"
             >
-              <div
-                className={`relative overflow-hidden ${
-                  i === 0 ? "aspect-[3/4] md:h-full" : "aspect-[3/4]"
-                }`}
-              >
-                <img
-                  src={c.img}
-                  alt={c.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1A1008]/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                <span className="inline-block text-[8px] tracking-[0.3em] uppercase bg-[#C9A84C] text-[#FAF6ED] px-2 py-0.5 mb-2">
-                  {c.tag}
-                </span>
-                <p className="font-serif text-lg text-[#FAF6ED] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  {c.title}
-                </p>
-                <p className="text-xs text-[#D4B483] opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
-                  {c.subtitle}
-                </p>
-              </div>
-              <div className="p-4 bg-[#EDE3CC]">
-                <p className="font-serif text-base text-[#2D2418] font-medium">
-                  {c.title}
-                </p>
-                <p className="text-xs text-[#8B6A3E] mt-0.5">{c.subtitle}</p>
-              </div>
+              <Link to="/collections" className="block">
+                {/* Image Container with aspect ratio */}
+                <div className="relative aspect-[3/4] overflow-hidden bg-[#EDE3CC]">
+                  <img
+                    src={c.img}
+                    alt={c.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+
+                  {/* Category Tag Badge */}
+                  <div className="absolute top-3 left-3 z-10">
+                    <span className="text-[8px] tracking-[0.25em] uppercase bg-[#C9A84C] text-[#FAF6ED] px-2.5 py-1 font-semibold shadow-sm">
+                      {c.tag}
+                    </span>
+                  </div>
+
+                  {/* In-Image Hover Action (Constrained strictly to image container) */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1A1008]/80 via-[#1A1008]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3.5">
+                    <span className="w-full text-center py-2 bg-[#FAF6ED] text-[#2D2418] text-[11px] tracking-widest uppercase font-semibold transition-transform duration-300 translate-y-2 group-hover:translate-y-0 shadow-sm">
+                      View Collection →
+                    </span>
+                  </div>
+                </div>
+
+                {/* Clean Details Panel Below Photo (Never Overlapped) */}
+                <div className="p-4 bg-[#EDE3CC]">
+                  <p className="font-serif text-base text-[#2D2418] font-semibold group-hover:text-[#8B6A3E] transition-colors">
+                    {c.title}
+                  </p>
+                  <p className="text-xs text-[#8B6A3E] mt-0.5 tracking-wider">
+                    {c.subtitle}
+                  </p>
+                </div>
+              </Link>
             </div>
           ))}
         </div>

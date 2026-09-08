@@ -39,3 +39,8 @@ This project uses **Tailwind CSS v4** through the `@tailwindcss/vite` plugin con
 - Use double quotes for strings containing apostrophes (`"We're here to help"`), or escape them in single-quoted strings. An unescaped apostrophe in a single-quoted string breaks the build.
 - Ensure JSX tags are closed and braces are balanced.
 - Export components as default exports.
+- **Markdown-Driven Development (MDD)**: Review `docs/MD_DRIVEN_DEVELOPMENT.md` before making architectural changes. Always update relevant docs (`docs/plan.md`, `docs/SUPABASE_SETUP.md`, `docs/SESSION_CHANGELOG.md`) alongside code edits.
+- **Categories & Tags**: Always reference the centralized `PRODUCT_CATEGORIES` from `src/types/index.ts`. Never hardcode category string arrays in components.
+- **Pricing & Discounts**: Always calculate and format prices through `src/lib/pricing.ts` (`getPricingDetails`). Never hardcode inline discount percentage calculations.
+- **Image Performance**: Always use `<OptimizedImage />` from `src/components/OptimizedImage.tsx` with blur-up thumbnails to ensure zero layout shift (CLS = 0).
+

@@ -29,11 +29,12 @@ conversation. The website is a premium catalogue plus an enquiry funnel.
 
 | Concern    | Choice                                |
 | ---------- | ------------------------------------- |
-| Framework  | Next.js (App Router) + TypeScript     |
-| Styling    | Tailwind CSS                          |
+| Framework  | React 19 + TypeScript 5.7             |
+| Bundler    | Vite 8                                |
+| Styling    | Tailwind CSS v4 (@tailwindcss/vite)   |
 | Data       | Supabase (Postgres + Auth + Storage)  |
-| Hosting    | Vercel                                |
-| Conversion | WhatsApp deep links                   |
+| Conversion | Custom WhatsApp deep links            |
+| Tooling    | oxfmt + pnpm                          |
 
 ### Brand
 
@@ -53,19 +54,22 @@ tiers.
 
 ## 2. Phase Map
 
-| Phase | Name             | Depends on | Ships                                  |
-| ----- | ---------------- | ---------- | -------------------------------------- |
-| 0     | Foundation       | —          | Runnable empty app + design tokens     |
-| 1     | Visual Shell     | 0          | Brand components + style guide page    |
-| 2     | Data Contract    | 0          | Types + mock catalogue (no UI)         |
-| 3     | Homepage         | 1, 2       | Complete landing page                  |
-| 4     | Catalogue        | 3          | Shop, filters, product detail          |
-| 5     | WhatsApp Enquiry | 4          | The business workflow, end to end      |
-| 6     | Supabase         | 5          | Real persistence behind the same types |
-| 7     | Images & Storage | 6          | Real product photography               |
-| 8     | Admin            | 6, 7       | Owner-maintainable catalogue           |
-| 9     | Secondary Pages  | 3          | About, contact, FAQ, policies          |
-| 10    | Production       | all        | Live on the custom domain              |
+| Phase | Name             | Depends on | Ships                                  | Status |
+| ----- | ---------------- | ---------- | -------------------------------------- | :--- |
+| 0     | Foundation       | —          | Runnable app + luxury tokens           | ✅ Complete |
+| 1     | Visual Shell     | 0          | Brand components + navbar + footer     | ✅ Complete |
+| 2     | Data Contract    | 0          | Types + dual pricing + categories      | ✅ Complete |
+| 3     | Homepage         | 1, 2       | Complete landing page + GSAP reveals   | ✅ Complete |
+| 4     | Catalogue        | 3          | Collections + Top 10 pagination        | ✅ Complete |
+| 5     | WhatsApp Enquiry | 4          | Custom Buy / Rent deep link engine     | ✅ Complete |
+| 6     | Supabase         | 5          | PostgreSQL catalog + live page views   | ✅ Complete |
+| 7     | Images & Storage | 6          | WebP compression + 40px blur skeletons | ✅ Complete |
+| 8     | Admin            | 6, 7       | Role-based access control (RBAC)       | ✅ Complete |
+| 9     | Secondary Pages  | 3          | About, contact, Rent vs Buy guide      | ✅ Complete |
+| 10    | Production       | all        | Live on custom domain                  | ⏳ Ready |
+
+**Phases 0 through 9 are fully implemented and verified.**
+
 
 **Phases 1 and 2 can run in parallel** (one is visual, one is data). Everything
 else is sequential.
@@ -373,4 +377,10 @@ Record anything a future reader would otherwise have to guess.
 | 2026-09-02 | 6, 7 | Supabase S3 Storage + WebP Canvas Compression | Free tier storage offload with zero instance disk usage and sub-50ms LCP via 40px blur thumbnails. |
 | 2026-09-02 | 8 | Two-Tier Auth (`admin` vs `superadmin`) | Non-technical staff (`admin`) manage catalog/orders; technical cloud tabs hidden and restricted to `superadmin`. |
 | 2026-09-02 | 8 | 100% Real Live Analytics Telemetry | Removed all dummy/inflated counters so dashboard metrics accurately reflect actual prospective brides visiting. |
+| 2026-09-08 | 2, 4 | Dual Pricing Engine (`buy_price` vs `current_price`) | Prioritizes current selling price while showcasing scratched original price and luxury discount tag without breaking older catalog entries. |
+| 2026-09-08 | 4 | Collections Top 10 Default + Responsive Pagination | Shows first 10 signature pieces on Page 1 by default, allows switching between 5, 10, or 20 per page, and smooth-scrolls to top of grid. |
+| 2026-09-08 | 2 | Centralized Category Architecture | Extracted `PRODUCT_CATEGORIES` into `types/index.ts` to provide a single source of truth for Collections, Admin Modals, and Tables. |
+| 2026-09-08 | 6 | Plain `TEXT` Column for Categories (`tag`) in Supabase | Kept column `tag` as `TEXT` rather than Postgres `ENUM` to allow painless zero-migration category evolution. |
+| 2026-09-08 | 6 | Zero-Vulnerability Role-Level Security (RLS) | Split RLS into `anon` public read and `authenticated` staff write, preventing unauthorized alterations while resolving RLS policy violations. |
+| 2026-09-08 | All | Markdown-Driven Development (MDD) Standard | Formalized specification-first development methodology across documentation, tests, and automated build verification. |
 

@@ -44,15 +44,25 @@ The application implements client-enforced role-based access control (RBAC):
 ### 👗 A. Vault Inventory Management
 Located in the **"Vault Inventory"** tab (`InventoryManager.tsx`):
 
-- **Search & Filtering**: Search in real-time across piece titles, designers, tags (Bridal, Indo-Western, Festive, Reception), and SKU codes.
+- **Search & Filtering**: Search in real-time across piece titles, designers, tags (`Bridal`, `Indo-Western`, `Festive`, `Reception`), and SKU codes.
 - **Availability Toggle (1-Click)**: Instantly switch between `Available` and `Currently Rented`. Changes update across the storefront in real time.
-- **Add Lehenga Modal**:
+- **Dual Pricing & Discount Engine**:
+  - Enter **Original Buy Price** (e.g. `₹85,000`) and **Current Selling Price** (e.g. `₹68,000`).
+  - Real-time modal preview calculates discount percentage (e.g. `20% OFF`).
+  - Storefront automatically renders the scratched buy price, current price, and "Limited Time Discount" badge.
+  - WhatsApp enquiry messages automatically populate discount info.
+- **Category / Tag Assignment**:
+  - Select from centralized categories (`PRODUCT_CATEGORIES`) or input custom tags.
+- **Add / Edit Lehenga Modal**:
   - Automatically runs client-side image compression (WebP).
   - Automatically generates an ultra-low-latency 40px blur thumbnail.
   - Uploads directly to the Supabase `lehenga-images` bucket.
   - Supports Purchase Price and Rental Price.
 - **Edit & Delete**: Safe editing and confirmation modal for product deletion.
-- **Restore Defaults**: Reset to the 9 signature seed pieces if required.
+- **Storefront Collections Pagination**:
+  - Storefront (`/collections`) displays the top 10 items by default on Page 1.
+  - Customers can toggle between 5, 10, or 20 pieces per page with smooth scrolling.
+- **Restore Defaults**: Reset to signature seed pieces if required.
 
 ---
 
