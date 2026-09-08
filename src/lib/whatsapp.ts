@@ -1,3 +1,5 @@
+import { getPricingDetails } from "./pricing"
+
 export const WHATSAPP_PHONE = "919284953320"
 
 export interface WhatsAppPiece {
@@ -5,6 +7,8 @@ export interface WhatsAppPiece {
   designer?: string
   tag?: string
   price?: string
+  buy_price?: string
+  current_price?: string
   rent?: string
   sku?: string
   available?: boolean
@@ -19,6 +23,10 @@ export function buildWhatsAppEnquiryUrl(
   intent?: "general" | "rent" | "buy",
 ): string {
   const isAvailable = piece.available !== false
+  const pricing = getPricingDetails(piece)
+  const priceDisplay = pricing.hasDiscount
+    ? `${pricing.currentPrice} (Limited Time Discount — Original Price: ${pricing.buyPrice})`
+    : pricing.currentPrice
   const lines: string[] = []
 
   if (!isAvailable) {
@@ -61,7 +69,7 @@ export function buildWhatsAppEnquiryUrl(
     lines.push(`• *Piece:* ${piece.title}`)
     if (piece.designer) lines.push(`• *Designer:* ${piece.designer}`)
     if (piece.tag) lines.push(`• *Collection:* ${piece.tag}`)
-    if (piece.price) lines.push(`• *Purchase Price:* ${piece.price}`)
+    if (priceDisplay) lines.push(`• *Purchase Price:* ${priceDisplay}`)
     if (piece.sku) lines.push(`• *SKU:* ${piece.sku}`)
     lines.push("")
     lines.push(
@@ -78,7 +86,7 @@ export function buildWhatsAppEnquiryUrl(
     lines.push(`• *Piece:* ${piece.title}`)
     if (piece.designer) lines.push(`• *Designer:* ${piece.designer}`)
     if (piece.tag) lines.push(`• *Collection:* ${piece.tag}`)
-    if (piece.price) lines.push(`• *Buy Price:* ${piece.price}`)
+    if (priceDisplay) lines.push(`• *Buy Price:* ${priceDisplay}`)
     if (piece.rent) lines.push(`• *Rental:* ${piece.rent}`)
     if (piece.sku) lines.push(`• *SKU:* ${piece.sku}`)
     lines.push("")

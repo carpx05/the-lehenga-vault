@@ -73,7 +73,9 @@ CREATE TABLE IF NOT EXISTS public.products (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   designer TEXT NOT NULL,
-  price TEXT NOT NULL,
+  buy_price TEXT NOT NULL DEFAULT '₹0',
+  current_price TEXT NOT NULL DEFAULT '₹0',
+  price TEXT DEFAULT '₹0',
   rent TEXT NOT NULL,
   tag TEXT NOT NULL,
   available BOOLEAN DEFAULT true,
@@ -88,14 +90,26 @@ CREATE TABLE IF NOT EXISTS public.products (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Products RLS Policies
+-- ==========================================================
+-- SECURE ROW LEVEL SECURITY (Zero Vulnerabilities):
+-- 1. Public visitors (anon) can ONLY view/read the catalog
+-- 2. Only authenticated staff/admins can INSERT, UPDATE, DELETE
+-- ==========================================================
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Products Public Read" ON public.products 
-  FOR SELECT USING (true);
+-- Clean up older permissive policies if present
+DROP POLICY IF EXISTS "Products Public Read" ON public.products;
+DROP POLICY IF EXISTS "Products Full Access" ON public.products;
+DROP POLICY IF EXISTS "Public Read Only" ON public.products;
+DROP POLICY IF EXISTS "Staff Authenticated Full Access" ON public.products;
 
-CREATE POLICY "Products Full Access" ON public.products 
-  FOR ALL USING (true);
+-- Allow public read access to catalog
+CREATE POLICY "Public Read Only" ON public.products 
+  FOR SELECT TO anon, authenticated USING (true);
+
+-- Allow authenticated staff/superadmin to insert, update, delete
+CREATE POLICY "Staff Authenticated Full Access" ON public.products 
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- --------------------------------------------------------------------
 -- 3. TABLE: Page Views (Real-Time Live Visitor Telemetry)
@@ -114,11 +128,23 @@ CREATE TABLE IF NOT EXISTS public.page_views (
 -- Page Views RLS Policies
 ALTER TABLE public.page_views ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Page Views Insert" ON public.page_views;
+DROP POLICY IF EXISTS "Page Views Read" ON public.page_views;
+
 CREATE POLICY "Page Views Insert" ON public.page_views 
   FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Page Views Read" ON public.page_views 
   FOR SELECT USING (true);
+
+-- --------------------------------------------------------------------
+-- 4. OPTIONAL MIGRATION: Upgrading Existing Tables
+-- --------------------------------------------------------------------
+-- If you created products table previously without buy_price/current_price:
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS buy_price TEXT NOT NULL DEFAULT '₹0';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS current_price TEXT NOT NULL DEFAULT '₹0';
+UPDATE public.products SET buy_price = price WHERE buy_price = '₹0' AND price IS NOT NULL;
+UPDATE public.products SET current_price = price WHERE current_price = '₹0' AND price IS NOT NULL;
 ```
 
 ---
@@ -146,3 +172,26 @@ Alternatively, credentials can be set dynamically by the **`superadmin`** user w
 | **Client Upload Payload** | < 300 KB | Canvas WebP client-side downscaling (1600px max width, 0.82 quality) |
 | **Telemetry Write Overhead** | 0ms (non-blocking) | Background async ingestion to `public.page_views` |
 | **Catalog Load Time** | 0ms (Local Cache) | Stale-while-revalidate IndexedDB/localStorage mirror |
+
+---
+
+## 5. Category Architecture & Mapping
+
+* **Database Column**: `tag` (`TEXT NOT NULL`)
+* **Enum Status in DB**: There is **no Postgres enum constraint** on `tag`. It is stored as standard `TEXT`. This was chosen deliberately so you can introduce or modify categories anytime without running complex `ALTER TYPE ...` migrations in PostgreSQL.
+* **Single Source of Truth**: Categories are defined centrally in `src/types/index.ts` under `PRODUCT_CATEGORIES`:
+  ```typescript
+  export const PRODUCT_CATEGORIES = [
+    "Bridal",
+    "Indo-Western",
+    "Festive",
+    "Reception",
+  ] as const
+  ```
+* **Renaming Categories across Existing Records**:
+  If you rename a category in code and want all existing Supabase products to update, execute:
+  ```sql
+  UPDATE public.products 
+  SET tag = 'New Category Name' 
+  WHERE tag = 'Old Category Name';
+  ```
