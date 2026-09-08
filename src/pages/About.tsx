@@ -1,4 +1,6 @@
+import { useRef } from "react"
 import { Link } from "react-router-dom"
+import { gsap, useGSAP, prefersReducedMotion } from "../lib/gsap"
 
 const values = [
   {
@@ -41,12 +43,119 @@ const team = [
 ]
 
 export default function About() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return
+
+      // Header entrance
+      gsap.from(".about-header-text > *", {
+        y: 35,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.15,
+        ease: "power2.out",
+        delay: 0.1,
+      })
+
+      gsap.from(".about-header-img", {
+        scale: 1.08,
+        opacity: 0,
+        duration: 1.2,
+        ease: "power2.out",
+        delay: 0.2,
+      })
+
+      // Story section
+      gsap.from(".about-story-line", {
+        scrollTrigger: {
+          trigger: ".about-story-section",
+          start: "top 80%",
+          once: true,
+        },
+        scaleX: 0,
+        transformOrigin: "left center",
+        duration: 0.8,
+        ease: "power2.out",
+      })
+
+      gsap.from(".about-story-content > *", {
+        scrollTrigger: {
+          trigger: ".about-story-section",
+          start: "top 80%",
+          once: true,
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.85,
+        stagger: 0.12,
+        ease: "power2.out",
+      })
+
+      // Values section
+      gsap.from(".values-header", {
+        scrollTrigger: {
+          trigger: ".values-section",
+          start: "top 85%",
+          once: true,
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power2.out",
+      })
+
+      gsap.from(".value-card", {
+        scrollTrigger: {
+          trigger: ".values-grid",
+          start: "top 80%",
+          once: true,
+        },
+        y: 35,
+        opacity: 0,
+        duration: 0.85,
+        stagger: 0.14,
+        ease: "power2.out",
+      })
+
+      // Press logos
+      gsap.from(".press-item", {
+        scrollTrigger: {
+          trigger: ".press-section",
+          start: "top 85%",
+          once: true,
+        },
+        y: 20,
+        opacity: 0,
+        duration: 0.7,
+        stagger: 0.08,
+        ease: "power2.out",
+      })
+
+      // CTA section
+      gsap.from(".about-cta-content > *", {
+        scrollTrigger: {
+          trigger: ".about-cta-section",
+          start: "top 80%",
+          once: true,
+        },
+        y: 25,
+        opacity: 0,
+        duration: 0.85,
+        stagger: 0.12,
+        ease: "power2.out",
+      })
+    },
+    { scope: containerRef },
+  )
+
   return (
-    <div className="bg-[#F5EDD8] min-h-screen">
+    <div ref={containerRef} className="bg-[#F5EDD8] min-h-screen">
       {/* Header */}
       <div className="relative bg-[#2D2418] pt-32 pb-0 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-end pb-0">
-          <div className="pb-16 md:pb-24">
+          <div className="about-header-text pb-16 md:pb-24">
             <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-4 font-medium">
               Our Story
             </p>
@@ -56,35 +165,35 @@ export default function About() {
               of the <em className="italic text-[#D4B483]">Indian bride.</em>
             </h1>
           </div>
-          <div className="relative h-72 md:h-96">
+          <div className="relative h-72 md:h-96 overflow-hidden">
             <img
               src="https://images.unsplash.com/photo-1654764746225-e63f5e90facd?w=700&h=600&fit=crop&auto=format"
               alt="Bride in a stunning red and gold bridal lehenga"
-              className="w-full h-full object-cover object-top"
+              className="about-header-img w-full h-full object-cover object-top"
             />
           </div>
         </div>
       </div>
 
       {/* Story */}
-      <section className="max-w-7xl mx-auto px-6 py-20 md:py-28 grid md:grid-cols-12 gap-10">
+      <section className="about-story-section max-w-7xl mx-auto px-6 py-20 md:py-28 grid md:grid-cols-12 gap-10">
         <div className="md:col-span-3">
-          <div className="w-8 h-px bg-[#C9A84C] mb-4" />
+          <div className="about-story-line w-8 h-px bg-[#C9A84C] mb-4" />
           <p className="text-xs tracking-[0.3em] uppercase text-[#8B6A3E] font-medium">
-            Founded 2019
+            Founded 2026
           </p>
         </div>
-        <div className="md:col-span-9 space-y-6">
+        <div className="about-story-content md:col-span-9 space-y-6">
           <p className="font-serif text-2xl md:text-3xl text-[#2D2418] leading-relaxed font-medium">
             "I watched my sister spend three weekends in bridal stores,
             overwhelmed by options that felt either too generic or entirely out
             of budget. That weekend, I decided to build something different."
           </p>
           <p className="text-[#5C3D1E] leading-relaxed">
-            — Kavya Nair, Founder of The Lehenga Vault
+            — Shilpi Mishra, Founder of The Lehenga Vault
           </p>
           <p className="text-[#5C3D1E] leading-relaxed mt-6">
-            The Lehenga Vault was founded in 2019 in Thane with a simple idea:
+            The Lehenga Vault was founded in 2026 in Thane with a simple idea:
             what if every bride — regardless of budget — could wear a truly
             spectacular lehenga on her wedding day? What began as a small
             curated rack of 40 pieces in a boutique studio grew into Thane's
@@ -101,17 +210,22 @@ export default function About() {
       </section>
 
       {/* Values */}
-      <section className="bg-[#EDE3CC] py-20 md:py-28 px-6">
+      <section className="values-section bg-[#EDE3CC] py-20 md:py-28 px-6">
         <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium">
-            What we believe
-          </p>
-          <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold mb-16">
-            Our values
-          </h2>
-          <div className="grid md:grid-cols-2 gap-px bg-[#D4C4A0]">
+          <div className="values-header">
+            <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium">
+              What we believe
+            </p>
+            <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold mb-16">
+              Our values
+            </h2>
+          </div>
+          <div className="values-grid grid md:grid-cols-2 gap-px bg-[#D4C4A0]">
             {values.map((v) => (
-              <div key={v.title} className="bg-[#EDE3CC] p-10 md:p-12">
+              <div
+                key={v.title}
+                className="value-card bg-[#EDE3CC] p-10 md:p-12"
+              >
                 <div className="w-6 h-px bg-[#C9A84C] mb-5" />
                 <h3 className="font-serif text-2xl text-[#2D2418] font-semibold mb-4">
                   {v.title}
@@ -125,41 +239,8 @@ export default function About() {
         </div>
       </section>
 
-      {/* Team */}
-      <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-        <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 font-medium">
-          The people behind the vault
-        </p>
-        <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold mb-16">
-          Meet the team
-        </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {team.map((member) => (
-            <div key={member.name} className="group">
-              <div className="aspect-square overflow-hidden bg-[#EDE3CC] mb-5">
-                <img
-                  src={member.img}
-                  alt={member.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div className="w-5 h-px bg-[#C9A84C] mb-3" />
-              <p className="font-serif text-xl text-[#2D2418] font-semibold">
-                {member.name}
-              </p>
-              <p className="text-xs tracking-widest uppercase text-[#C9A84C] mt-1 font-medium">
-                {member.role}
-              </p>
-              <p className="text-sm text-[#5C3D1E] mt-3 leading-relaxed">
-                {member.note}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Press */}
-      <section className="bg-[#2D2418] py-16 px-6">
+      <section className="press-section bg-[#2D2418] py-16 px-6">
         <div className="max-w-7xl mx-auto">
           <p className="text-[10px] tracking-[0.35em] uppercase text-[#C9A84C] mb-8 text-center font-medium">
             As seen in
@@ -174,7 +255,7 @@ export default function About() {
             ].map((pub) => (
               <p
                 key={pub}
-                className="font-serif text-xl text-[#5C3D1E] hover:text-[#D4B483] transition-colors cursor-default"
+                className="press-item font-serif text-xl text-[#5C3D1E] hover:text-[#D4B483] transition-colors cursor-default"
               >
                 {pub}
               </p>
@@ -184,23 +265,25 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-6 text-center bg-[#F5EDD8]">
-        <p className="text-[10px] tracking-[0.4em] uppercase text-[#8B6A3E] mb-4 font-medium">
-          Come see us
-        </p>
-        <h2 className="font-serif text-4xl text-[#2D2418] font-semibold mb-4">
-          The vault is open.
-        </h2>
-        <p className="text-[#5C3D1E] text-sm mb-8 max-w-md mx-auto leading-relaxed">
-          We invite you to experience The Lehenga Vault in person. Book a
-          private styling appointment — it's always free, always personal.
-        </p>
-        <Link
-          to="/contact"
-          className="inline-block px-10 py-4 bg-[#C9A84C] text-[#FAF6ED] text-xs tracking-widest uppercase font-medium hover:bg-[#B8924A] transition-colors"
-        >
-          Book Your Visit
-        </Link>
+      <section className="about-cta-section py-20 px-6 text-center bg-[#F5EDD8]">
+        <div className="about-cta-content max-w-md mx-auto">
+          <p className="text-[10px] tracking-[0.4em] uppercase text-[#8B6A3E] mb-4 font-medium">
+            Come see us
+          </p>
+          <h2 className="font-serif text-4xl text-[#2D2418] font-semibold mb-4">
+            The vault is open.
+          </h2>
+          <p className="text-[#5C3D1E] text-sm mb-8 leading-relaxed">
+            We invite you to experience The Lehenga Vault in person. Book a
+            private styling appointment — it's always free, always personal.
+          </p>
+          <Link
+            to="/contact"
+            className="inline-block px-10 py-4 bg-[#C9A84C] text-[#FAF6ED] text-xs tracking-widest uppercase font-medium hover:bg-[#B8924A] transition-colors"
+          >
+            Book Your Visit
+          </Link>
+        </div>
       </section>
     </div>
   )

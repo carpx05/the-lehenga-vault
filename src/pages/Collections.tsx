@@ -1,7 +1,9 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
+import { MessageCircle } from "lucide-react"
 import { useProducts } from "../context/ProductContext"
 import OptimizedImage from "../components/OptimizedImage"
+import { buildWhatsAppEnquiryUrl } from "../lib/whatsapp"
 
 const filters = ["All", "Bridal", "Indo-Western", "Festive", "Reception"]
 
@@ -75,13 +77,18 @@ export default function Collections() {
                     {piece.tag}
                   </span>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#1A1008] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Link
-                    to="/contact"
-                    className="block w-full text-center py-2.5 bg-[#C9A84C] text-[#FAF6ED] text-xs tracking-widest uppercase font-medium hover:bg-[#B8924A] transition-colors"
+                <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-[#1A1008]/90 via-[#1A1008]/40 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                  <a
+                    href={buildWhatsAppEnquiryUrl(piece)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full text-center py-2.5 bg-[#C9A84C] hover:bg-[#B8924A] text-[#FAF6ED] text-[11px] sm:text-xs tracking-widest uppercase font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-md"
                   >
-                    {piece.available ? "Book / Enquire" : "Join Waitlist"}
-                  </Link>
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>
+                      {piece.available ? "Book / Enquire" : "Join Waitlist"}
+                    </span>
+                  </a>
                 </div>
               </div>
               <div className="pt-4">
@@ -108,6 +115,28 @@ export default function Collections() {
                       {piece.rent}
                     </p>
                   </div>
+                </div>
+
+                {/* Direct quick action WhatsApp options */}
+                <div className="mt-3 pt-2.5 border-t border-[#D4C4A0]/60 flex items-center justify-between text-[11px]">
+                  <a
+                    href={buildWhatsAppEnquiryUrl(piece, "buy")}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#8B6A3E] hover:text-[#C9A84C] transition-colors font-medium flex items-center gap-1 uppercase tracking-wider"
+                  >
+                    <span>Enquire to Buy</span>
+                  </a>
+                  <span className="text-[#D4C4A0]">·</span>
+                  <a
+                    href={buildWhatsAppEnquiryUrl(piece, "rent")}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#C9A84C] hover:text-[#B8924A] transition-colors font-semibold flex items-center gap-1 uppercase tracking-wider"
+                  >
+                    <span>Enquire to Rent</span>
+                    <MessageCircle className="w-3 h-3" />
+                  </a>
                 </div>
               </div>
             </div>

@@ -1,4 +1,6 @@
+import { useRef } from "react"
 import { Link } from "react-router-dom"
+import { gsap, useGSAP, prefersReducedMotion } from "../lib/gsap"
 
 const collections = [
   {
@@ -27,6 +29,12 @@ const collections = [
   },
 ]
 
+const stats = [
+  { value: 500, suffix: "+", label: "Curated Pieces" },
+  { value: 200, suffix: "+", label: "Happy Brides" },
+  { value: 10, suffix: "+", label: "Designer Labels" },
+]
+
 const testimonials = [
   {
     quote:
@@ -49,32 +57,194 @@ const testimonials = [
 ]
 
 export default function Home() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) {
+        const counters =
+          containerRef.current?.querySelectorAll<HTMLElement>(".stat-counter")
+        counters?.forEach((el) => {
+          el.textContent = el.dataset.target || "0"
+        })
+        return
+      }
+
+      // Hero text subtle fade-up stagger
+      gsap.from(".hero-text-item", {
+        y: 35,
+        opacity: 0,
+        duration: 1.1,
+        stagger: 0.15,
+        ease: "power2.out",
+        delay: 0.15,
+      })
+
+      // Hero background image subtle parallax
+      gsap.to(".hero-bg-img", {
+        yPercent: 18,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".hero-section",
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        },
+      })
+
+      // Hero stats count-up trigger
+      const counters =
+        containerRef.current?.querySelectorAll<HTMLElement>(".stat-counter")
+      counters?.forEach((counter) => {
+        const target = parseInt(counter.dataset.target || "0", 10)
+        const tracker = { val: 0 }
+        gsap.to(tracker, {
+          val: target,
+          duration: 1.8,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: ".hero-stats",
+            start: "top 95%",
+            once: true,
+          },
+          onUpdate: () => {
+            counter.textContent = Math.floor(tracker.val).toString()
+          },
+        })
+      })
+
+      // Collections section header & cards
+      gsap.from(".collections-header", {
+        scrollTrigger: {
+          trigger: ".collections-section",
+          start: "top 85%",
+          once: true,
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.85,
+        ease: "power2.out",
+      })
+
+      gsap.from(".collection-card", {
+        scrollTrigger: {
+          trigger: ".collections-grid",
+          start: "top 80%",
+          once: true,
+        },
+        y: 40,
+        opacity: 0,
+        duration: 0.9,
+        stagger: 0.12,
+        ease: "power2.out",
+      })
+
+      // About Strip section
+      gsap.from(".about-strip-img", {
+        scrollTrigger: {
+          trigger: ".about-strip-section",
+          start: "top 75%",
+          once: true,
+        },
+        scale: 1.08,
+        opacity: 0,
+        duration: 1.1,
+        ease: "power2.out",
+      })
+
+      gsap.from(".about-strip-content > *", {
+        scrollTrigger: {
+          trigger: ".about-strip-section",
+          start: "top 75%",
+          once: true,
+        },
+        y: 28,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.12,
+        ease: "power2.out",
+      })
+
+      // Testimonials section
+      gsap.from(".testimonials-header", {
+        scrollTrigger: {
+          trigger: ".testimonials-section",
+          start: "top 85%",
+          once: true,
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.85,
+        ease: "power2.out",
+      })
+
+      gsap.from(".testimonial-card", {
+        scrollTrigger: {
+          trigger: ".testimonials-grid",
+          start: "top 80%",
+          once: true,
+        },
+        y: 35,
+        opacity: 0,
+        duration: 0.85,
+        stagger: 0.14,
+        ease: "power2.out",
+      })
+
+      // CTA Banner parallax and reveal
+      gsap.to(".cta-bg-img", {
+        yPercent: 15,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".cta-banner-section",
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
+      })
+
+      gsap.from(".cta-content > *", {
+        scrollTrigger: {
+          trigger: ".cta-banner-section",
+          start: "top 75%",
+          once: true,
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.9,
+        stagger: 0.14,
+        ease: "power2.out",
+      })
+    },
+    { scope: containerRef },
+  )
+
   return (
-    <div className="bg-[#F5EDD8]">
+    <div ref={containerRef} className="bg-[#F5EDD8]">
       {/* Hero */}
-      <section className="relative min-h-screen flex items-end pb-16 md:pb-24 overflow-hidden">
-        <div className="absolute inset-0 bg-[#2D2418]">
+      <section className="hero-section relative min-h-screen flex items-end pb-16 md:pb-24 overflow-hidden">
+        <div className="absolute inset-0 bg-[#2D2418] overflow-hidden">
           <img
             src="https://images.unsplash.com/photo-1610047520958-b42ebcd2f6cb?w=1400&h=1000&fit=crop&auto=format"
             alt="Bride in an exquisite bridal lehenga"
-            className="w-full h-full object-cover opacity-60"
+            className="hero-bg-img w-full h-full object-cover opacity-60 scale-110"
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#1A1008]/80 via-[#1A1008]/20 to-transparent" />
 
         <div className="relative max-w-7xl mx-auto px-6 w-full grid md:grid-cols-2 gap-8 items-end">
           <div>
-            <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-6 font-medium">
+            <p className="hero-text-item text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-6 font-medium">
               Thane's Premier Bridal Atelier
             </p>
-            <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-semibold text-[#FAF6ED] leading-[0.95] mb-6">
+            <h1 className="hero-text-item font-serif text-5xl md:text-7xl lg:text-8xl font-semibold text-[#FAF6ED] leading-[0.95] mb-6">
               Dressed for
               <br />
               <em className="italic text-[#D4B483]">the moment</em>
               <br />
               of a lifetime.
             </h1>
-            <div className="flex gap-4 mt-8">
+            <div className="hero-text-item flex gap-4 mt-8">
               <Link
                 to="/collections"
                 className="px-7 py-3.5 bg-[#C9A84C] text-[#FAF6ED] text-sm tracking-widest uppercase font-medium hover:bg-[#B8924A] transition-colors"
@@ -89,15 +259,14 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <div className="hidden md:flex flex-col items-end gap-3">
-            {[
-              ["500+", "Curated Pieces"],
-              ["200+", "Happy Brides"],
-              ["10+", "Designer Labels"],
-            ].map(([num, label]) => (
+          <div className="hidden md:flex flex-col items-end gap-3 hero-stats">
+            {stats.map(({ value, suffix, label }) => (
               <div key={label} className="text-right">
                 <p className="font-serif text-4xl text-[#D4B483] font-semibold">
-                  {num}
+                  <span className="stat-counter" data-target={value}>
+                    0
+                  </span>
+                  {suffix}
                 </p>
                 <p className="text-xs tracking-[0.2em] uppercase text-[#C4B49A]">
                   {label}
@@ -133,8 +302,8 @@ export default function Home() {
       </div>
 
       {/* Collections Grid */}
-      <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-        <div className="flex items-end justify-between mb-12">
+      <section className="collections-section max-w-7xl mx-auto px-6 py-20 md:py-28">
+        <div className="collections-header flex items-end justify-between mb-12">
           <div>
             <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3">
               Featured
@@ -153,11 +322,11 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+        <div className="collections-grid grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
           {collections.map((c, i) => (
             <div
               key={c.title}
-              className={`group relative overflow-hidden bg-[#EDE3CC] ${
+              className={`collection-card group relative overflow-hidden bg-[#EDE3CC] ${
                 i === 0 ? "md:row-span-2" : ""
               }`}
             >
@@ -196,20 +365,20 @@ export default function Home() {
       </section>
 
       {/* About Strip */}
-      <section className="bg-[#2D2418] py-20 md:py-28">
+      <section className="about-strip-section bg-[#2D2418] py-20 md:py-28 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 md:gap-20 items-center">
           <div className="relative">
             <div className="aspect-[4/5] bg-[#5C3D1E] overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1571908599407-cdb918ed83bf?w=700&h=875&fit=crop&auto=format"
                 alt="Model in an elegant Indo-Western ensemble"
-                className="w-full h-full object-cover"
+                className="about-strip-img w-full h-full object-cover"
               />
             </div>
             <div className="absolute -bottom-6 -right-6 w-32 h-32 border border-[#C9A84C]/30 hidden md:block" />
             <div className="absolute -top-6 -left-6 w-20 h-20 bg-[#C9A84C]/10 hidden md:block" />
           </div>
-          <div>
+          <div className="about-strip-content">
             <p className="text-[10px] tracking-[0.35em] uppercase text-[#C9A84C] mb-4 font-medium">
               Our Story
             </p>
@@ -238,89 +407,23 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Services
-      <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
-        <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 text-center font-medium">How we serve you</p>
-        <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold text-center mb-16">
-          Two ways to wear luxury
-        </h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {[
-            {
-              label: "Rent",
-              heading: "Wear the dream,\nreturn with memories",
-              body: "Borrow from our vault for 3–7 days. Ideal for one-time occasions like weddings, receptions, and festive events. Includes complimentary steaming and a stylist consultation.",
-              price: "Starting ₹4,999",
-              cta: "Explore Rentals",
-              to: "/rent-buy",
-              bg: "#EDE3CC",
-            },
-            {
-              label: "Buy",
-              heading: "An heirloom you\npass forward",
-              body: "Own a piece from our curated collection of bridal and semi-bridal lehengas. Each purchase includes after-care, alteration support, and a heritage storage bag.",
-              price: "Starting ₹28,000",
-              cta: "Shop to Own",
-              to: "/rent-buy",
-              bg: "#2D2418",
-            },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className="p-10 md:p-14 flex flex-col gap-5"
-              style={{ backgroundColor: s.bg }}
-            >
-              <span
-                className="text-[9px] tracking-[0.4em] uppercase font-medium px-3 py-1 w-fit"
-                style={{
-                  backgroundColor: s.bg === "#2D2418" ? "#C9A84C" : "#2D2418",
-                  color: s.bg === "#2D2418" ? "#FAF6ED" : "#FAF6ED",
-                }}
-              >
-                {s.label}
-              </span>
-              <h3
-                className="font-serif text-3xl md:text-4xl font-semibold leading-tight whitespace-pre-line"
-                style={{ color: s.bg === "#2D2418" ? "#EDE3CC" : "#2D2418" }}
-              >
-                {s.heading}
-              </h3>
-              <p
-                className="text-sm leading-relaxed"
-                style={{ color: s.bg === "#2D2418" ? "#C4B49A" : "#5C3D1E" }}
-              >
-                {s.body}
-              </p>
-              <p
-                className="font-serif text-xl font-semibold"
-                style={{ color: s.bg === "#2D2418" ? "#D4B483" : "#8B6A3E" }}
-              >
-                {s.price}
-              </p>
-              <Link
-                to={s.to}
-                className="inline-flex items-center gap-2 text-sm tracking-widest uppercase font-medium mt-2 hover:gap-4 transition-all"
-                style={{ color: s.bg === "#2D2418" ? "#C9A84C" : "#2D2418" }}
-              >
-                {s.cta} <span>→</span>
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section> */}
-
       {/* Testimonials */}
-      <section className="bg-[#EDE3CC] py-20 md:py-28">
+      <section className="testimonials-section bg-[#EDE3CC] py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-6">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 text-center font-medium">
-            Voices from the vault
-          </p>
-          <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold text-center mb-16">
-            What our brides say
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="testimonials-header">
+            <p className="text-[10px] tracking-[0.35em] uppercase text-[#8B6A3E] mb-3 text-center font-medium">
+              Voices from the vault
+            </p>
+            <h2 className="font-serif text-4xl md:text-5xl text-[#2D2418] font-semibold text-center mb-16">
+              What our brides say
+            </h2>
+          </div>
+          <div className="testimonials-grid grid md:grid-cols-3 gap-8">
             {testimonials.map((t) => (
-              <div key={t.name} className="bg-[#F5EDD8] p-8 relative">
+              <div
+                key={t.name}
+                className="testimonial-card bg-[#F5EDD8] p-8 relative"
+              >
                 <span className="font-serif text-6xl text-[#C9A84C]/30 absolute top-4 left-6 leading-none select-none">
                   "
                 </span>
@@ -342,15 +445,15 @@ export default function Home() {
       </section>
 
       {/* CTA Banner */}
-      <section className="relative py-28 overflow-hidden bg-[#2D2418]">
-        <div className="absolute inset-0 opacity-10">
+      <section className="cta-banner-section relative py-28 overflow-hidden bg-[#2D2418]">
+        <div className="absolute inset-0 opacity-10 overflow-hidden">
           <img
             src="https://images.unsplash.com/photo-1707576618343-26a1b377ca7a?w=1400&h=500&fit=crop&auto=format"
             alt=""
-            className="w-full h-full object-cover"
+            className="cta-bg-img w-full h-full object-cover scale-110"
           />
         </div>
-        <div className="relative text-center px-6">
+        <div className="cta-content relative text-center px-6">
           <p className="text-[10px] tracking-[0.4em] uppercase text-[#C9A84C] mb-4 font-medium">
             Begin your journey
           </p>
