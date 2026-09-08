@@ -1,20 +1,11 @@
 import React, { useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
-import {
-  Lock,
-  Mail,
-  Eye,
-  EyeOff,
-  Sparkles,
-  ArrowLeft,
-  ShieldCheck,
-  ShieldAlert,
-} from "lucide-react"
+import { Lock, Mail, Eye, EyeOff, ArrowLeft, ShieldCheck } from "lucide-react"
 
 export default function AdminLogin() {
   const { login } = useAuth()
-  const [email, setEmail] = useState("thelehengavault@gmail.com")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
@@ -38,18 +29,6 @@ export default function AdminLogin() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleSelectAdmin = () => {
-    setEmail("thelehengavault@gmail.com")
-    setPassword("")
-    setError("")
-  }
-
-  const handleSelectSuperAdmin = () => {
-    setEmail("ayush.b302@gmail.com")
-    setPassword("")
-    setError("")
   }
 
   return (
@@ -162,50 +141,6 @@ export default function AdminLogin() {
               )}
             </button>
           </form>
-
-          {/* Quick Account Switcher Helper */}
-          <div className="mt-6 pt-6 border-t border-[#5C3D1E]/60 space-y-2">
-            <p className="text-[10px] uppercase tracking-widest text-[#8B6A3E] text-center mb-2">
-              Select Authorized User
-            </p>
-            <div className="grid grid-cols-1 gap-2">
-              <button
-                type="button"
-                onClick={handleSelectAdmin}
-                className={`p-2.5 bg-[#2D2418] border text-left text-xs transition-colors flex items-center justify-between ${
-                  email === "thelehengavault@gmail.com"
-                    ? "border-[#C9A84C] text-[#FAF6ED]"
-                    : "border-[#5C3D1E] text-[#D4B483] hover:border-[#C9A84C]"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C9A84C]" />
-                  <span>thelehengavault@gmail.com</span>
-                </div>
-                <span className="text-[10px] uppercase tracking-widest bg-[#5C3D1E] text-[#D4B483] px-2 py-0.5 font-bold">
-                  Staff Admin
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSelectSuperAdmin}
-                className={`p-2.5 bg-[#2D2418] border text-left text-xs transition-colors flex items-center justify-between ${
-                  email === "ayush.b302@gmail.com"
-                    ? "border-[#C9A84C] text-[#FAF6ED]"
-                    : "border-[#5C3D1E] text-[#D4B483] hover:border-[#C9A84C]"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <ShieldAlert className="w-3.5 h-3.5 text-[#C9A84C]" />
-                  <span>ayush.b302@gmail.com</span>
-                </div>
-                <span className="text-[10px] uppercase tracking-widest bg-[#C9A84C] text-[#2D2418] px-2 py-0.5 font-bold">
-                  SuperAdmin
-                </span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
