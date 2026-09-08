@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react"
 import { useProducts } from "../../context/ProductContext"
-import { Product } from "../../types"
+import { Product, PRODUCT_CATEGORIES } from "../../types"
 import ProductModal from "./ProductModal"
 import OptimizedImage from "../OptimizedImage"
+import { getPricingDetails } from "../../lib/pricing"
 import {
   Plus,
   Search,
@@ -204,21 +205,19 @@ export default function InventoryManager() {
             <Filter className="w-3.5 h-3.5" />
             <span>Category:</span>
           </div>
-          {["All", "Bridal", "Indo-Western", "Festive", "Reception"].map(
-            (tag) => (
-              <button
-                key={tag}
-                onClick={() => setSelectedTag(tag)}
-                className={`px-3 py-1 text-xs uppercase tracking-wider font-medium transition-all border ${
-                  selectedTag === tag
-                    ? "bg-[#2D2418] text-[#FAF6ED] border-[#2D2418]"
-                    : "border-[#D4C4A0] text-[#5C3D1E] hover:border-[#C9A84C]"
-                }`}
-              >
-                {tag}
-              </button>
-            ),
-          )}
+          {["All", ...PRODUCT_CATEGORIES].map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag)}
+              className={`px-3 py-1 text-xs uppercase tracking-wider font-medium transition-all border ${
+                selectedTag === tag
+                  ? "bg-[#2D2418] text-[#FAF6ED] border-[#2D2418]"
+                  : "border-[#D4C4A0] text-[#5C3D1E] hover:border-[#C9A84C]"
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
 
           {/* Availability Filter */}
           <select
@@ -339,8 +338,35 @@ export default function InventoryManager() {
                   </td>
 
                   {/* Buy Price */}
-                  <td className="py-3 px-4 font-serif text-sm font-medium text-[#2D2418]">
-                    {piece.price}
+                  <td className="py-3 px-4">
+                    {(() => {
+                      const pricing = getPricingDetails(piece)
+                      if (pricing.hasDiscount) {
+                        return (
+                          <div>
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="text-xs text-neutral-400 line-through">
+                                {pricing.buyPrice}
+                              </span>
+                              <span className="font-serif text-sm font-semibold text-[#2D2418]">
+                                {pricing.currentPrice}
+                              </span>
+                            </div>
+                            <span className="inline-block text-[8px] uppercase tracking-wider font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mt-0.5">
+                              Limited Time Discount
+                              {pricing.discountPercent
+                                ? ` (${pricing.discountPercent}% off)`
+                                : ""}
+                            </span>
+                          </div>
+                        )
+                      }
+                      return (
+                        <span className="font-serif text-sm font-medium text-[#2D2418]">
+                          {pricing.currentPrice}
+                        </span>
+                      )
+                    })()}
                   </td>
 
                   {/* Rent Price */}
@@ -439,9 +465,31 @@ export default function InventoryManager() {
                       <p className="text-[10px] uppercase text-[#8B6A3E]">
                         Buy
                       </p>
-                      <p className="font-serif text-sm font-semibold text-[#2D2418]">
-                        {piece.price}
-                      </p>
+                      {(() => {
+                        const pricing = getPricingDetails(piece)
+                        if (pricing.hasDiscount) {
+                          return (
+                            <div>
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-xs text-neutral-400 line-through">
+                                  {pricing.buyPrice}
+                                </span>
+                                <span className="font-serif text-sm font-semibold text-[#2D2418]">
+                                  {pricing.currentPrice}
+                                </span>
+                              </div>
+                              <span className="text-[8px] uppercase tracking-wider text-emerald-700 font-semibold block">
+                                Limited Time Discount
+                              </span>
+                            </div>
+                          )
+                        }
+                        return (
+                          <p className="font-serif text-sm font-semibold text-[#2D2418]">
+                            {pricing.currentPrice}
+                          </p>
+                        )
+                      })()}
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] uppercase text-[#8B6A3E]">

@@ -1,8 +1,9 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   getSavedSupabaseConfig,
   saveSupabaseConfig,
   testSupabaseConnection,
+  getSupabaseClient,
 } from "../../lib/supabase"
 import { useProducts } from "../../context/ProductContext"
 import { SupabaseConfig } from "../../types"
@@ -29,8 +30,18 @@ export default function SupabaseSettings() {
   const [copiedSql, setCopiedSql] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [syncStatus, setSyncStatus] = useState<string | null>(null)
+  const [authSessionEmail, setAuthSessionEmail] = useState<string | null>(null)
 
   const { products, syncWithSupabase } = useProducts()
+
+  useEffect(() => {
+    const client = getSupabaseClient()
+    if (client) {
+      client.auth.getSession().then(({ data: { session } }) => {
+        setAuthSessionEmail(session?.user?.email || null)
+      })
+    }
+  }, [config.isConnected])
 
   const handleSave = () => {
     saveSupabaseConfig(config)
@@ -64,9 +75,11 @@ export default function SupabaseSettings() {
         `Successfully mirrored ${res.count} lehengas to Supabase DB table 'products'!`,
       )
     } else {
-      setSyncStatus(
-        "Failed to sync products. Ensure table 'products' exists in Supabase (run the SQL snippet below).",
-      )
+      let errText = res.error || "Failed to sync products."
+      if (errText.toLowerCase().includes("row-level security")) {
+        errText = `RLS Policy: ${res.error}. Your current session is not authenticated in Supabase Auth. Sign in at /admin with your Supabase credentials, or run the SQL Seed snippet below in Supabase SQL Editor.`
+      }
+      setSyncStatus(errText)
     }
     setIsSyncing(false)
   }
@@ -82,6 +95,11 @@ VALUES ('lehenga-images', 'lehenga-images', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
 -- Storage RLS Policies (Allow public upload & view)
+DROP POLICY IF EXISTS "Public Image Read" ON storage.objects;
+DROP POLICY IF EXISTS "Public Image Upload" ON storage.objects;
+DROP POLICY IF EXISTS "Public Image Update" ON storage.objects;
+DROP POLICY IF EXISTS "Public Image Delete" ON storage.objects;
+
 CREATE POLICY "Public Image Read" ON storage.objects 
   FOR SELECT USING (bucket_id = 'lehenga-images');
 
@@ -94,12 +112,14 @@ CREATE POLICY "Public Image Update" ON storage.objects
 CREATE POLICY "Public Image Delete" ON storage.objects 
   FOR DELETE USING (bucket_id = 'lehenga-images');
 
--- 2. Create Products Table (Catalog)
+-- 2. Products Table (Catalog)
 CREATE TABLE IF NOT EXISTS public.products (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   designer TEXT NOT NULL,
-  price TEXT NOT NULL,
+  buy_price TEXT NOT NULL DEFAULT '₹0',
+  current_price TEXT NOT NULL DEFAULT '₹0',
+  price TEXT DEFAULT '₹0',
   rent TEXT NOT NULL,
   tag TEXT NOT NULL,
   available BOOLEAN DEFAULT true,
@@ -114,9 +134,27 @@ CREATE TABLE IF NOT EXISTS public.products (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- ==========================================================
+-- SECURE ROW LEVEL SECURITY (Zero Vulnerabilities):
+-- 1. Public visitors (anon) can ONLY view/read the catalog
+-- 2. Only authenticated admins/staff can INSERT, UPDATE, DELETE
+-- ==========================================================
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Products Public Read" ON public.products FOR SELECT USING (true);
-CREATE POLICY "Products Full Access" ON public.products FOR ALL USING (true);
+DROP POLICY IF EXISTS "Products Public Read" ON public.products;
+DROP POLICY IF EXISTS "Products Full Access" ON public.products;
+DROP POLICY IF EXISTS "Public Read Only" ON public.products;
+DROP POLICY IF EXISTS "Staff Full Access" ON public.products;
+
+CREATE POLICY "Public Read Only" ON public.products 
+  FOR SELECT 
+  TO anon, authenticated 
+  USING (true);
+
+CREATE POLICY "Staff Full Access" ON public.products 
+  FOR ALL 
+  TO authenticated 
+  USING (true) 
+  WITH CHECK (true);
 
 -- 3. Create Page Views Table (Real-Time Live Visitor Telemetry)
 CREATE TABLE IF NOT EXISTS public.page_views (
@@ -131,8 +169,18 @@ CREATE TABLE IF NOT EXISTS public.page_views (
 );
 
 ALTER TABLE public.page_views ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Page Views Insert" ON public.page_views;
+DROP POLICY IF EXISTS "Page Views Read" ON public.page_views;
 CREATE POLICY "Page Views Insert" ON public.page_views FOR INSERT WITH CHECK (true);
 CREATE POLICY "Page Views Read" ON public.page_views FOR SELECT USING (true);
+
+-- 4. Grant table access to anon and authenticated roles
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON TABLE public.products TO anon, authenticated;
+GRANT ALL ON TABLE public.page_views TO anon, authenticated;
+
+-- 5. Force PostgREST to reload schema cache
+NOTIFY pgrst, 'reload schema';
 `
 
   const copySqlToClipboard = () => {
@@ -382,6 +430,34 @@ CREATE POLICY "Page Views Read" ON public.page_views FOR SELECT USING (true);
             {isSyncing ? "Syncing..." : "Push Catalog to Supabase"}
           </button>
         </div>
+
+        {authSessionEmail ? (
+          <div className="flex items-center gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-2">
+            <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span>
+              Authenticated as <strong>{authSessionEmail}</strong> (Role:{" "}
+              <code className="font-mono bg-emerald-100/70 px-1 py-0.5">
+                authenticated
+              </code>
+              ). Ready to sync with secure RLS policies.
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-start gap-2 text-xs text-amber-900 bg-amber-50 border border-amber-300 p-3">
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">
+                Current Supabase Session: Unauthenticated (Role: 'anon')
+              </p>
+              <p className="text-[11px] text-[#5C3D1E] mt-0.5">
+                To prevent security vulnerabilities, your Supabase table has RLS
+                enabled which safely blocks public 'anon' writes. Sign into
+                Supabase Auth at /admin, or run the SQL Seed snippet below in
+                Supabase SQL Editor.
+              </p>
+            </div>
+          </div>
+        )}
 
         {syncStatus && (
           <p className="text-xs text-emerald-800 bg-emerald-50 p-2.5 border border-emerald-200">

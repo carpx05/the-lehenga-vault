@@ -40,19 +40,19 @@ const testimonials = [
     quote:
       "Finding my bridal lehenga at The Lehenga Vault felt like a dream. The team understood exactly what I wanted.",
     name: "Priya Sharma",
-    detail: "Bride, December 2023",
+    detail: "Bride, August 2026",
   },
   {
     quote:
       "Renting was seamless and the quality was stunning. Every guest thought I owned it!",
     name: "Ananya Reddy",
-    detail: "Festive occasion, 2024",
+    detail: "Festive occasion, 2026",
   },
   {
     quote:
       "The Indo-Western pieces are unlike anything I've seen in Thane. Truly curated.",
     name: "Meera Kapoor",
-    detail: "Bride, March 2024",
+    detail: "Bride, September 2026",
   },
 ]
 
