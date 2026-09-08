@@ -1,4 +1,10 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom"
 import { useEffect } from "react"
 import { Analytics } from "@vercel/analytics/react"
 import Navbar from "./components/Navbar"
@@ -40,7 +46,8 @@ function Layout() {
           <Route path="/rent-buy" element={<RentBuy />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/*" element={<Admin />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       {!isAdmin && <Footer />}
