@@ -1,7 +1,11 @@
 export const PRODUCT_CATEGORIES = [
   "Bridal",
   "Indo-Western",
-  "Festive",
+  "Classic",
+  "Predraped Sarees",
+  "Gowns",
+  "Co-ord Sets",
+  "Navratri/Festive",
   "Siders",
 ] as const
 
