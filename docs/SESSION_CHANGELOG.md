@@ -146,6 +146,8 @@
 | **Interactive Cover Selection** | Visual grid of all product photos inside `ProductModal`. Atelier curators can click any photo or click "Set as Cover" to select the primary cover photo, designated by a gold `★ Cover` badge. When saving, the selected cover is saved as `img` and placed first in the `images` array (`[primaryCover, ...remainingImages]`). | `src/components/admin/ProductModal.tsx` |
 | **Inventory Multi-Photo Badges** | Both table and grid views in `/admin` display a photo counter badge (`📷 X photos`) for pieces with multiple angles. | `src/components/admin/InventoryManager.tsx` |
 | **Cloud Resilience & Documentation** | `syncProductsToSupabase` and `fetchProductsFromSupabase` updated to persist and hydrate `images TEXT[]` with backward compatibility fallback if the column is absent in older Supabase instances. `SUPABASE_SETUP.md` updated with SQL migration. | `src/lib/supabase.ts`<br>`docs/SUPABASE_SETUP.md` |
+| **Permanent Image Persistence (Zero Expiry)** | Replaced ephemeral `URL.createObjectURL` blobs with permanent WebP Data URLs and built IndexedDB catalog backup (`src/lib/inventoryStorage.ts`), ensuring uploaded images never expire or disappear across browser reloads. | `src/lib/imageOptimizer.ts`<br>`src/lib/inventoryStorage.ts`<br>`src/context/ProductContext.tsx` |
+| **Vault Inventory Edit Sync** | `ProductModal` now synchronizes with `initialData` on open, displaying all existing catalog images for the piece and appending newly uploaded angles seamlessly. | `src/components/admin/ProductModal.tsx`<br>`src/components/admin/InventoryManager.tsx` |
 
 ---
 
@@ -163,12 +165,17 @@
 - **Decision:** Iterate and compress each photo on an offscreen HTML5 canvas before network dispatch.
 - **Rationale:** Batching multiple 10MB+ raw bridal photos without client compression risks out-of-memory or timeout errors. Client compression reduces payload size by ~90%+ before upload.
 
+### D. Persistent WebP DataURLs & IndexedDB Resilience
+- **Decision:** Do not rely on session-scoped `blob:` URLs for local previews; use permanent WebP Data URLs and mirror catalogue state into IndexedDB.
+- **Rationale:** `blob:` URLs are automatically revoked by the browser upon reload, causing local uploaded images to vanish. Permanent WebP Data URLs combined with IndexedDB provide zero-loss local persistence even when Supabase is not connected.
+
 ---
 
 ## 3. Verification & Test Run
 
-- **Formatting:** Verified with `oxfmt` across all 29 files.
+- **Formatting:** Verified with `oxfmt` across all 30 files.
 - **TypeScript & Vite Bundler:** `pnpm build` passed with **0 errors**.
 - **Dev Server:** Active and healthy on `http://0.0.0.0:5173`.
+
 
 

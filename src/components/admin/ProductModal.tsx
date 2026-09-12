@@ -105,6 +105,43 @@ export default function ProductModal({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabaseConfig = getSavedSupabaseConfig()
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setTitle(initialData?.title || "")
+      setDesigner(initialData?.designer || "Tarun Tahiliani")
+      setCustomDesigner("")
+      setBuyPrice(initialData?.buy_price || initialData?.price || "₹65,000")
+      setCurrentPrice(
+        initialData?.current_price || initialData?.price || "₹65,000",
+      )
+      setRent(initialData?.rent || "₹8,500")
+      setTag(initialData?.tag || "Bridal")
+      setAvailable(
+        initialData?.available !== undefined ? initialData.available : true,
+      )
+      setImg(initialData?.img || "")
+
+      // Populate all existing images available for this piece from the catalog
+      const existingImages: string[] = []
+      if (initialData?.images && initialData.images.length > 0) {
+        existingImages.push(...initialData.images)
+      } else if (initialData?.img) {
+        existingImages.push(initialData.img)
+      }
+      setGalleryImages(Array.from(new Set(existingImages)))
+
+      setThumbnail(initialData?.thumbnail || "")
+      setDescription(initialData?.description || "")
+      setSku(initialData?.sku || `LV-${Math.floor(100 + Math.random() * 900)}`)
+      setColor(initialData?.color || "")
+      setFabric(initialData?.fabric || "Silk & Organza")
+      setSize(initialData?.size || "M (Customizable)")
+      setAdditionalImageUrl("")
+      setStatusMessage(null)
+      setOptimizationStats(null)
+    }
+  }, [isOpen, initialData])
+
   if (!isOpen) return null
 
   const handleImageFilesChange = async (

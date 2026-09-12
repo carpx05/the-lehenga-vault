@@ -68,6 +68,20 @@ export async function optimizeImageForUpload(
           thumbnailDataUrl = thumbCanvas.toDataURL("image/jpeg", 0.5)
         }
 
+        // 3. Generate persistent WebP dataURL so images survive page reloads and local storage
+        let persistentDataUrl = ""
+        try {
+          persistentDataUrl = canvas.toDataURL("image/webp", quality)
+          if (
+            !persistentDataUrl ||
+            !persistentDataUrl.startsWith("data:image/webp")
+          ) {
+            persistentDataUrl = canvas.toDataURL("image/jpeg", quality)
+          }
+        } catch {
+          persistentDataUrl = ""
+        }
+
         // Export as WebP if supported, fallback to JPEG
         const mimeType = "image/webp"
         canvas.toBlob(
@@ -95,7 +109,8 @@ export async function optimizeImageForUpload(
                   )
                   resolve({
                     file: optimizedFile,
-                    previewUrl: URL.createObjectURL(jpegBlob),
+                    previewUrl:
+                      persistentDataUrl || URL.createObjectURL(jpegBlob),
                     thumbnailDataUrl,
                     originalSize,
                     optimizedSize: jpegBlob.size,
@@ -124,7 +139,7 @@ export async function optimizeImageForUpload(
 
             resolve({
               file: optimizedFile,
-              previewUrl: URL.createObjectURL(blob),
+              previewUrl: persistentDataUrl || URL.createObjectURL(blob),
               thumbnailDataUrl,
               originalSize,
               optimizedSize: blob.size,

@@ -570,15 +570,18 @@ export default function InventoryManager() {
       </div>
 
       {/* Add / Edit Product Modal */}
-      <ProductModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setEditingProduct(null)
-        }}
-        onSave={handleSaveProduct}
-        initialData={editingProduct}
-      />
+      {isModalOpen && (
+        <ProductModal
+          key={editingProduct ? `edit-${editingProduct.id}` : "new-piece"}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false)
+            setEditingProduct(null)
+          }}
+          onSave={handleSaveProduct}
+          initialData={editingProduct}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       {deletingId && (
