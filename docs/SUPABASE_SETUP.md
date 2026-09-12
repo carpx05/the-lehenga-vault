@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   tag TEXT NOT NULL,
   available BOOLEAN DEFAULT true,
   img TEXT NOT NULL,
+  images TEXT[],
   thumbnail TEXT,
   images TEXT[],
   description TEXT,
@@ -90,6 +91,9 @@ CREATE TABLE IF NOT EXISTS public.products (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migration for existing tables:
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[];
 
 -- ==========================================================
 -- SECURE ROW LEVEL SECURITY (Zero Vulnerabilities):

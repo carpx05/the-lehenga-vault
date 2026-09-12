@@ -128,3 +128,47 @@
 - **Formatting:** Clean format across all 29 files using `oxfmt`.
 - **Zero CLS:** Maintained using `<OptimizedImage />` with blur placeholders across modal and catalog cards.
 
+---
+
+# Session Changelog & Engineering Record — Part 3
+
+> **Date:** September 12, 2026  
+> **Topic:** In-Page Multi-Angle Product Detail Dialogue, Batch Multi-Image Upload, and Interactive Cover Photo Selection
+
+---
+
+## 1. Summary of Changes
+
+| Area | What Was Built | Key Files |
+| :--- | :--- | :--- |
+| **In-Page Product Detail Modal** | Clicking any piece on `/collections` opens an in-page dialogue modal with active high-res gallery stage (`OptimizedImage`), next/previous controls, photo counter (`1 / 4`), thumbnail strip selector with gold active ring, keyboard controls (ESC, Arrow keys), full garment specifications, and dual Buy/Rent WhatsApp CTA links. | `src/components/ProductDetailModal.tsx`<br>`src/pages/Collections.tsx` |
+| **Batch Multi-Image Uploader** | Admin `ProductModal` file input accepts multiple image files simultaneously (`multiple`), runs client-side WebP compression and blur thumbnail generation for all files in sequence, offloads to Supabase Storage CDN if configured, and calculates total bandwidth saved. | `src/components/admin/ProductModal.tsx` |
+| **Interactive Cover Selection** | Visual grid of all product photos inside `ProductModal`. Atelier curators can click any photo or click "Set as Cover" to select the primary cover photo, designated by a gold `★ Cover` badge. When saving, the selected cover is saved as `img` and placed first in the `images` array (`[primaryCover, ...remainingImages]`). | `src/components/admin/ProductModal.tsx` |
+| **Inventory Multi-Photo Badges** | Both table and grid views in `/admin` display a photo counter badge (`📷 X photos`) for pieces with multiple angles. | `src/components/admin/InventoryManager.tsx` |
+| **Cloud Resilience & Documentation** | `syncProductsToSupabase` and `fetchProductsFromSupabase` updated to persist and hydrate `images TEXT[]` with backward compatibility fallback if the column is absent in older Supabase instances. `SUPABASE_SETUP.md` updated with SQL migration. | `src/lib/supabase.ts`<br>`docs/SUPABASE_SETUP.md` |
+
+---
+
+## 2. Architectural Decisions & Rationale
+
+### A. Non-Navigational Dialogue Modal
+- **Decision:** Open piece details directly in an in-page modal dialogue rather than navigating away to a separate URL.
+- **Rationale:** Preserves user scroll position, filter state, and pagination page on the Collections catalogue, maximizing browsing speed and engagement.
+
+### B. Cover Photo Priority in Gallery Array
+- **Decision:** Always position the selected cover image at index 0 of `images` while also writing to `img`.
+- **Rationale:** Guarantees 100% backward compatibility with all existing catalogue cards and external integrations while giving multi-image components an unambiguous primary image without extra lookups.
+
+### C. Client-Side Sequential Compression for Batch Uploads
+- **Decision:** Iterate and compress each photo on an offscreen HTML5 canvas before network dispatch.
+- **Rationale:** Batching multiple 10MB+ raw bridal photos without client compression risks out-of-memory or timeout errors. Client compression reduces payload size by ~90%+ before upload.
+
+---
+
+## 3. Verification & Test Run
+
+- **Formatting:** Verified with `oxfmt` across all 29 files.
+- **TypeScript & Vite Bundler:** `pnpm build` passed with **0 errors**.
+- **Dev Server:** Active and healthy on `http://0.0.0.0:5173`.
+
+

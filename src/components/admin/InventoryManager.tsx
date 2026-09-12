@@ -318,12 +318,12 @@ export default function InventoryManager() {
                         <p className="font-serif text-sm font-semibold text-[#2D2418]">
                           {piece.title}
                         </p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-[10px] text-[#8B6A3E] font-mono">
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span className="text-[10px] text-[#8B6A3E] font-mono">
                             {piece.sku || "LV-VAULT"}
-                          </p>
+                          </span>
                           {piece.images && piece.images.length > 1 && (
-                            <span className="inline-flex items-center gap-1 text-[9px] text-[#8B6A3E] bg-[#EDE3CC] px-1.5 py-0.2 rounded border border-[#D4C4A0]/60">
+                            <span className="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 bg-[#EDE3CC] text-[#5C3D1E] font-medium border border-[#D4C4A0]">
                               <Layers className="w-2.5 h-2.5 text-[#C9A84C]" />
                               {piece.images.length} photos
                             </span>
@@ -464,6 +464,12 @@ export default function InventoryManager() {
                     {piece.available ? "Available" : "Rented"}
                   </button>
                 </div>
+                {piece.images && piece.images.length > 1 && (
+                  <div className="absolute bottom-2 left-2 bg-[#2D2418]/85 backdrop-blur-xs text-[#FAF6ED] text-[9px] px-2 py-0.5 border border-[#C9A84C]/40 flex items-center gap-1 shadow">
+                    <Layers className="w-2.5 h-2.5 text-[#C9A84C]" />
+                    <span>{piece.images.length} photos</span>
+                  </div>
+                )}
               </div>
 
               <div className="p-4 flex-1 flex flex-col justify-between">
