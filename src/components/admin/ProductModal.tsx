@@ -83,13 +83,6 @@ export default function ProductModal({
   })
   const [additionalImageUrl, setAdditionalImageUrl] = useState("")
   const [thumbnail, setThumbnail] = useState(initialData?.thumbnail || "")
-  const [galleryImages, setGalleryImages] = useState<string[]>(() => {
-    if (initialData?.images && initialData.images.length > 0) {
-      return initialData.images
-    }
-    return initialData?.img ? [initialData.img] : []
-  })
-  const [additionalImageUrl, setAdditionalImageUrl] = useState("")
   const [description, setDescription] = useState(initialData?.description || "")
   const [sku, setSku] = useState(
     initialData?.sku || `LV-${Math.floor(100 + Math.random() * 900)}`,
@@ -273,7 +266,6 @@ export default function ProductModal({
         img: primaryCover,
         images: finalImagesList,
         thumbnail: thumbnail || undefined,
-        images: allImages.length > 0 ? allImages : [img.trim()],
         description: description.trim(),
         sku: sku.trim(),
         color: color.trim(),
