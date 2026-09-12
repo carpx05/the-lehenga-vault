@@ -83,9 +83,48 @@
 
 ---
 
+---
+
+# Session Changelog & Engineering Record — Part 3
+
+> **Date:** September 12, 2026  
+> **Topic:** Collection Page Product Quick-View Dialogue Box & Multi-Angle Image Gallery Pipeline
+
+---
+
+## 1. Summary of Changes
+
+| Area | What Was Built | Key Files |
+| :--- | :--- | :--- |
+| **Product Detail Dialogue Box** | In-page modal (`ProductDetailModal`) opening upon clicking any lehenga card on `/collections`. Displays full garment specifications, designer label, SKU, fabric/fitting details, curator notes, and dual buy/rent pricing. | `src/components/ProductDetailModal.tsx`<br>`src/pages/Collections.tsx` |
+| **Multi-Image Interactive Gallery** | Multi-angle photography viewer per piece with high-res active stage (`OptimizedImage`), previous/next arrow buttons, photo index counter (`2 / 4`), and horizontal thumbnail selector strip with active ring indicators. | `src/components/ProductDetailModal.tsx` |
+| **Keyboard & Accessibility** | Full accessibility support with `role="dialog"`, `aria-modal="true"`, background body scroll lock (`overflow: hidden`), `Escape` key close, and `ArrowLeft`/`ArrowRight` gallery navigation. | `src/components/ProductDetailModal.tsx` |
+| **Collections Card Interactions** | Cards are now accessible buttons (`role="button"`, `tabIndex={0}`) with subtle "View Details" hover prompts and multi-photo angle badges (`📷 X Photos`). Quick-action WhatsApp links use `e.stopPropagation()` so users can still directly enquire or click to open dialogue. | `src/pages/Collections.tsx` |
+| **Catalog Multi-Image Seeding** | Enriched all 12 signature pieces in `INITIAL_PRODUCTS` with 3–4 high-res bridal and occasion-wear angles (full silhouette, zardozi detail, drape, back view). Hydration merges images into existing local storage seamlessly. | `src/context/ProductContext.tsx`<br>`src/types/index.ts` |
+| **Admin Gallery Image Management** | Staff can add, view, and delete multiple photo URLs/angles per piece in the Admin Product Modal. Inventory table and grid display photo count badges. | `src/components/admin/ProductModal.tsx`<br>`src/components/admin/InventoryManager.tsx` |
+| **Supabase Cloud Resilience** | Safely persists and fetches `images TEXT[]`. Includes schema migration in `docs/SUPABASE_SETUP.md` with automatic fallback if the cloud database has not yet added the `images` column. | `src/lib/supabase.ts`<br>`docs/SUPABASE_SETUP.md` |
+
+---
+
+## 2. Architectural Decisions & Rationale
+
+### A. In-Page Dialogue Box Over Page Redirection
+- **Decision:** Open piece details directly in an in-page modal dialog rather than redirecting to a separate route like `/collections/:id`.
+- **Rationale:** Keeps prospective brides and occasion shoppers in the browsing flow without losing their current page position, category filters, or pagination state.
+
+### B. Multi-Angle Gallery Architecture
+- **Decision:** Add an optional `images?: string[]` array to `Product` that falls back to `[product.img]`.
+- **Rationale:** Preserves full backward compatibility with single-image catalog entries while providing multi-angle photography (front silhouette, embroidery macro, dupatta drape, back view) for high-ticket bridal pieces.
+
+### C. Propagation Isolation on Quick-Action CTAs
+- **Decision:** Apply `e.stopPropagation()` on card WhatsApp buttons (`Book / Enquire`, `Enquire to Buy`, `Enquire to Rent`).
+- **Rationale:** Clicking the card opens the rich detail dialogue box, while direct WhatsApp button clicks trigger instant conversion without inadvertently firing modal opening events.
+
+---
+
 ## 3. Verification & Test Run
 
-- **Formatting:** Clean format across all 28 files using `oxfmt`.
-- **TypeScript & Vite Bundler:** `pnpm build` passed with **0 errors**.
-- **Git State:** Clean commit pushed to remote branch `feat/collections-pagination-pricing`.
+- **TypeScript Verification:** Passed with 0 errors (`pnpm build`).
+- **Formatting:** Clean format across all 29 files using `oxfmt`.
+- **Zero CLS:** Maintained using `<OptimizedImage />` with blur placeholders across modal and catalog cards.
 

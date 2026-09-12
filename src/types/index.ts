@@ -23,6 +23,7 @@ export interface Product {
   available: boolean
   img: string
   thumbnail?: string
+  images?: string[]
   description?: string
   color?: string
   fabric?: string

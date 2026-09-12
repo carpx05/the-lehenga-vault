@@ -1,11 +1,18 @@
 import { useState, useRef } from "react"
 import { Link } from "react-router-dom"
-import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import {
+  MessageCircle,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+  Eye,
+} from "lucide-react"
 import { useProducts } from "../context/ProductContext"
 import OptimizedImage from "../components/OptimizedImage"
+import ProductDetailModal from "../components/ProductDetailModal"
 import { buildWhatsAppEnquiryUrl } from "../lib/whatsapp"
 import { getPricingDetails } from "../lib/pricing"
-import { PRODUCT_CATEGORIES } from "../types"
+import { Product, PRODUCT_CATEGORIES } from "../types"
 
 const filters = ["All", ...PRODUCT_CATEGORIES]
 const PAGE_SIZE_OPTIONS = [5, 10, 20] as const
@@ -29,6 +36,7 @@ export default function Collections() {
   const [active, setActive] = useState("All")
   const [pageSize, setPageSize] = useState<PageSize>(10)
   const [currentPage, setCurrentPage] = useState(1)
+  const [selectedPiece, setSelectedPiece] = useState<Product | null>(null)
   const gridTopRef = useRef<HTMLDivElement>(null)
 
   const filtered =
@@ -174,7 +182,20 @@ export default function Collections() {
               const pricing = getPricingDetails(piece)
 
               return (
-                <div key={piece.id} className="group">
+                <div
+                  key={piece.id}
+                  onClick={() => setSelectedPiece(piece)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      setSelectedPiece(piece)
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`View details for ${piece.title} by ${piece.designer}`}
+                  className="group cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#C9A84C] focus:ring-offset-2 focus:ring-offset-[#F5EDD8] transition-all"
+                >
                   <div className="relative aspect-[3/4] overflow-hidden bg-[#EDE3CC]">
                     <OptimizedImage
                       src={piece.img}
@@ -183,13 +204,13 @@ export default function Collections() {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     {!piece.available && (
-                      <div className="absolute inset-0 bg-[#2D2418]/50 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-[#2D2418]/50 flex items-center justify-center pointer-events-none">
                         <span className="text-[10px] tracking-[0.3em] uppercase text-[#FAF6ED] bg-[#2D2418]/80 px-4 py-2">
                           Currently Rented
                         </span>
                       </div>
                     )}
-                    <div className="absolute top-3 left-3 flex flex-col gap-1 items-start">
+                    <div className="absolute top-3 left-3 flex flex-col gap-1 items-start pointer-events-none">
                       <span className="text-[8px] tracking-[0.25em] uppercase bg-[#C9A84C] text-[#FAF6ED] px-2 py-1">
                         {piece.tag}
                       </span>
@@ -199,11 +220,29 @@ export default function Collections() {
                         </span>
                       )}
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-[#1A1008]/90 via-[#1A1008]/40 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+
+                    {/* Multiple Angles Photo Badge */}
+                    {piece.images && piece.images.length > 1 && (
+                      <div className="absolute top-3 right-3 bg-[#2D2418]/85 backdrop-blur-xs text-[#FAF6ED] text-[9px] tracking-wider px-2 py-0.5 flex items-center gap-1 shadow-sm pointer-events-none">
+                        <Layers className="w-3 h-3 text-[#C9A84C]" />
+                        <span>{piece.images.length} Photos</span>
+                      </div>
+                    )}
+
+                    {/* Quick View Hover Indicator */}
+                    <div className="absolute inset-0 bg-[#1A1008]/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                      <span className="bg-[#FAF6ED]/95 text-[#2D2418] text-[10px] tracking-widest uppercase font-semibold px-3.5 py-1.5 shadow-md border border-[#C9A84C]/50 flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                        <Eye className="w-3.5 h-3.5 text-[#C9A84C]" />
+                        <span>View Details</span>
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-[#1A1008]/90 via-[#1A1008]/40 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 z-10">
                       <a
                         href={buildWhatsAppEnquiryUrl(piece)}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="w-full text-center py-2.5 bg-[#C9A84C] hover:bg-[#B8924A] text-[#FAF6ED] text-[11px] sm:text-xs tracking-widest uppercase font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-md"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
@@ -214,7 +253,7 @@ export default function Collections() {
                     </div>
                   </div>
                   <div className="pt-4">
-                    <p className="font-serif text-lg text-[#2D2418] font-semibold">
+                    <p className="font-serif text-lg text-[#2D2418] font-semibold group-hover:text-[#8B6A3E] transition-colors">
                       {piece.title}
                     </p>
                     <p className="text-xs text-[#8B6A3E] mt-0.5 tracking-wider">
@@ -266,6 +305,7 @@ export default function Collections() {
                         href={buildWhatsAppEnquiryUrl(piece, "buy")}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="text-[#8B6A3E] hover:text-[#C9A84C] transition-colors font-medium flex items-center gap-1 uppercase tracking-wider"
                       >
                         <span>Enquire to Buy</span>
@@ -275,6 +315,7 @@ export default function Collections() {
                         href={buildWhatsAppEnquiryUrl(piece, "rent")}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="text-[#C9A84C] hover:text-[#B8924A] transition-colors font-semibold flex items-center gap-1 uppercase tracking-wider"
                       >
                         <span>Enquire to Rent</span>
@@ -360,6 +401,13 @@ export default function Collections() {
           </Link>
         </div>
       </div>
+
+      {/* Product Detail Dialogue Box */}
+      <ProductDetailModal
+        isOpen={Boolean(selectedPiece)}
+        piece={selectedPiece}
+        onClose={() => setSelectedPiece(null)}
+      />
     </div>
   )
 }

@@ -27,6 +27,12 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Bridal",
     available: true,
     img: "https://images.unsplash.com/photo-1654764746225-e63f5e90facd?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1654764746225-e63f5e90facd?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1610047520958-b42ebcd2f6cb?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1570212773364-e30cd076539e?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Intricately hand-embroidered raw silk lehenga featuring zardozi and antique dabka work. Paired with dual dupattas.",
     sku: "LV-BR-001",
@@ -45,6 +51,12 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Indo-Western",
     available: true,
     img: "https://images.unsplash.com/photo-1610047614256-023d7c028d0b?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1610047614256-023d7c028d0b?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1571908599407-cdb918ed83bf?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1518049362265-d5b2a6467637?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1549416878-b9ca95e26903?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Contemporary metallic champagne lehenga with gota patti detailing and modern cape silhouette.",
     sku: "LV-IW-002",
@@ -63,6 +75,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Bridal",
     available: false,
     img: "https://images.unsplash.com/photo-1570212773364-e30cd076539e?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1570212773364-e30cd076539e?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1654764746225-e63f5e90facd?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Royal heirloom velvet lehenga with fine micro-pearl embellishments and gold beaten wire craftsmanship.",
     sku: "LV-BR-003",
@@ -81,6 +98,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Reception",
     available: true,
     img: "https://images.unsplash.com/photo-1629118477133-b8b1499f2b8a?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1629118477133-b8b1499f2b8a?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1549416878-b9ca95e26903?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1610047614256-023d7c028d0b?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Sequinned geometric trailing lehenga designed for evening glamour and red-carpet receptions.",
     sku: "LV-RC-004",
@@ -99,6 +121,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Festive",
     available: true,
     img: "https://images.unsplash.com/photo-1610047520958-b42ebcd2f6cb?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1610047520958-b42ebcd2f6cb?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1654764746225-e63f5e90facd?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1571908599407-cdb918ed83bf?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Pastel dusty rose ensemble with intricate Kashmiri tilla embroidery and floral motifs.",
     sku: "LV-FE-005",
@@ -117,6 +144,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Bridal",
     available: true,
     img: "https://images.unsplash.com/photo-1677691257363-eebd2abeafec?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1677691257363-eebd2abeafec?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1707576618343-26a1b377ca7a?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1629118477133-b8b1499f2b8a?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Deep navy and midnight teal lehenga with crystal threadwork and structured can-can flare.",
     sku: "LV-BR-006",
@@ -135,6 +167,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Indo-Western",
     available: true,
     img: "https://images.unsplash.com/photo-1571908599407-cdb918ed83bf?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1571908599407-cdb918ed83bf?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1610047614256-023d7c028d0b?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1518049362265-d5b2a6467637?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Lightweight sustainable silk lehenga with Rajasthani marodi work and breathable lining.",
     sku: "LV-IW-007",
@@ -153,6 +190,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Reception",
     available: false,
     img: "https://images.unsplash.com/photo-1740674570259-a47d713a2976?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1740674570259-a47d713a2976?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1654764746225-e63f5e90facd?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "High-drama feathered and beaded reception lehenga with sweeping train and sheer bustier.",
     sku: "LV-RC-008",
@@ -171,6 +213,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Bridal",
     available: true,
     img: "https://images.unsplash.com/photo-1707576618343-26a1b377ca7a?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1707576618343-26a1b377ca7a?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1677691257363-eebd2abeafec?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1570212773364-e30cd076539e?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Masterpiece forest emerald green bridal lehenga encrusted with uncut gems and heirloom zardozi.",
     sku: "LV-BR-009",
@@ -189,6 +236,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Festive",
     available: true,
     img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1610047520958-b42ebcd2f6cb?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1740674570259-a47d713a2976?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Hand-spun chanderi lehenga adorned with traditional Kashmiri tilla craft and antique sequin borders.",
     sku: "LV-FE-010",
@@ -207,6 +259,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Reception",
     available: true,
     img: "https://images.unsplash.com/photo-1549416878-b9ca95e26903?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1549416878-b9ca95e26903?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1629118477133-b8b1499f2b8a?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1610047614256-023d7c028d0b?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Dramatic architectural trail lehenga with reflective gunmetal sequins and sheer structured corset.",
     sku: "LV-RC-011",
@@ -225,6 +282,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     tag: "Indo-Western",
     available: true,
     img: "https://images.unsplash.com/photo-1518049362265-d5b2a6467637?w=800&h=1100&fit=crop&auto=format",
+    images: [
+      "https://images.unsplash.com/photo-1518049362265-d5b2a6467637?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1571908599407-cdb918ed83bf?w=800&h=1100&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1610047614256-023d7c028d0b?w=800&h=1100&fit=crop&auto=format",
+    ],
     description:
       "Sun-kissed turmeric and marigold flared silhouette with hand-screened floral botanicals and gota edges.",
     sku: "LV-IW-012",
@@ -265,11 +327,21 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           return parsed.map((p: Product) => {
             const current = p.current_price || p.price || "₹0"
             const buy = p.buy_price || p.price || current
+            const seedMatch = INITIAL_PRODUCTS.find(
+              (ip) => String(ip.id) === String(p.id),
+            )
+            const images =
+              p.images && p.images.length > 0
+                ? p.images
+                : seedMatch?.images && seedMatch.images.length > 0
+                  ? seedMatch.images
+                  : [p.img]
             return {
               ...p,
               price: current,
               buy_price: buy,
               current_price: current,
+              images,
             }
           })
         }

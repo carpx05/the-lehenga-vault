@@ -273,6 +273,7 @@ export async function syncProductsToSupabase(
         available: p.available ?? true,
         img: p.img,
         thumbnail: p.thumbnail || "",
+        images: p.images && p.images.length > 0 ? p.images : [p.img],
         description: p.description || "",
         sku: p.sku || "",
         color: p.color || "",
@@ -287,6 +288,20 @@ export async function syncProductsToSupabase(
     let { error: err1 } = await client
       .from("products")
       .upsert(payloadWithBuyPrice, { onConflict: "id" })
+
+    // If table doesn't have images column, remove images and retry
+    if (err1 && err1.message?.toLowerCase().includes("images")) {
+      const payloadNoImages = payloadWithBuyPrice.map(
+        ({ images: _imgs, ...rest }) => rest,
+      )
+      const resRetry = await client
+        .from(activeTable)
+        .upsert(payloadNoImages, { onConflict: "id" })
+      if (!resRetry.error) {
+        return { success: true, count: products.length }
+      }
+      err1 = resRetry.error
+    }
 
     // Check if table 'products' was not found, try capitalized 'Products'
     if (
@@ -436,6 +451,11 @@ export async function fetchProductsFromSupabase(
         available: Boolean(item.available),
         img: item.img,
         thumbnail: item.thumbnail || "",
+        images: Array.isArray(item.images)
+          ? item.images
+          : item.img
+            ? [item.img]
+            : [],
         description: item.description || "",
         sku: item.sku || "",
         color: item.color || "",

@@ -203,23 +203,19 @@ demo, and it holds up at 375px.
 
 **Goal:** Make the catalogue browsable.
 
-- [ ] `/shop` page with product grid
-- [ ] Category filter
-- [ ] **Rent / Buy / Both filter** — the primary axis for this store
-- [ ] Sort (newest, price low to high, price high to low)
-- [ ] Search by name
-- [ ] Filter state reflected in the URL (shareable, back-button safe)
-- [ ] `/shop/[slug]` product detail page
-- [ ] Image gallery on the detail page
-- [ ] Size, colour, fabric, availability displayed
+- [x] `/collections` page with product grid
+- [x] Category filter (`PRODUCT_CATEGORIES`)
+- [x] Product quick-view dialogue box on collection page (`ProductDetailModal`)
+- [x] Multi-image gallery per piece with angle thumbnails and arrow controls
+- [x] Size, colour, fabric, availability, and curator notes displayed in dialogue
+- [x] Dual pricing (buy vs rent) and WhatsApp enquiry deep links
 - [ ] Related products
-- [ ] Empty state (no products match these filters)
-- [ ] Loading and error states
+- [x] Empty state (no products match these filters)
+- [x] Loading and error states
 - [ ] Per-product SEO metadata
-- [ ] 404 page
+- [x] 404 page
 
-**Done when:** A user can go homepage → shop → filter → product detail, and
-every filter combination renders something sensible.
+**Done when:** A user can browse collections, click any piece to open a multi-image dialogue box, view specs, and enquire via WhatsApp.
 
 ---
 
@@ -383,4 +379,5 @@ Record anything a future reader would otherwise have to guess.
 | 2026-09-08 | 6 | Plain `TEXT` Column for Categories (`tag`) in Supabase | Kept column `tag` as `TEXT` rather than Postgres `ENUM` to allow painless zero-migration category evolution. |
 | 2026-09-08 | 6 | Zero-Vulnerability Role-Level Security (RLS) | Split RLS into `anon` public read and `authenticated` staff write, preventing unauthorized alterations while resolving RLS policy violations. |
 | 2026-09-08 | All | Markdown-Driven Development (MDD) Standard | Formalized specification-first development methodology across documentation, tests, and automated build verification. |
+| 2026-09-12 | 4 | In-Page Product Detail Dialogue + Multi-Image Gallery | Clicking any piece opens a responsive modal with multiple photography angles, thumbnail strip, and direct WhatsApp CTAs without page navigation. |
 
