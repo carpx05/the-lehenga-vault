@@ -257,10 +257,11 @@ export async function syncProductsToSupabase(
   }
 
   try {
-    // 1. Format matching the exact Supabase table schema (with buy_price and current_price)
+    // 1. Format matching the exact Supabase table schema (with buy_price, current_price, and images)
     const payloadWithBuyPrice = products.map((p) => {
       const current = p.current_price || p.price || "₹0"
       const buy = p.buy_price || p.price || current
+      const imgList = p.images && p.images.length > 0 ? p.images : [p.img]
 
       return {
         id: String(p.id),
@@ -272,6 +273,7 @@ export async function syncProductsToSupabase(
         tag: p.tag || "Bridal",
         available: p.available ?? true,
         img: p.img,
+        images: imgList,
         thumbnail: p.thumbnail || "",
         images: p.images && p.images.length > 0 ? p.images : [p.img],
         description: p.description || "",
@@ -326,7 +328,21 @@ export async function syncProductsToSupabase(
       return { success: true, count: products.length }
     }
 
-    // 2. If the table doesn't have buy_price / current_price columns, fallback to price
+    // 2. If the table doesn't have the 'images' column yet, fallback without images
+    if (err1.message?.toLowerCase().includes("images")) {
+      const payloadWithoutImages = payloadWithBuyPrice.map(
+        ({ images: _omitted, ...rest }) => rest,
+      )
+      const { error: errImages } = await client
+        .from(activeTable)
+        .upsert(payloadWithoutImages, { onConflict: "id" })
+      if (!errImages) {
+        return { success: true, count: products.length }
+      }
+      err1 = errImages
+    }
+
+    // 3. If the table doesn't have buy_price / current_price columns, fallback to price
     if (
       err1.message?.toLowerCase().includes("buy_price") ||
       err1.message?.toLowerCase().includes("current_price")
@@ -450,6 +466,10 @@ export async function fetchProductsFromSupabase(
         tag: item.tag || "Bridal",
         available: Boolean(item.available),
         img: item.img,
+        images:
+          Array.isArray(item.images) && item.images.length > 0
+            ? item.images
+            : [item.img],
         thumbnail: item.thumbnail || "",
         images: Array.isArray(item.images)
           ? item.images

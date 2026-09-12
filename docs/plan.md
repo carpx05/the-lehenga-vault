@@ -379,5 +379,6 @@ Record anything a future reader would otherwise have to guess.
 | 2026-09-08 | 6 | Plain `TEXT` Column for Categories (`tag`) in Supabase | Kept column `tag` as `TEXT` rather than Postgres `ENUM` to allow painless zero-migration category evolution. |
 | 2026-09-08 | 6 | Zero-Vulnerability Role-Level Security (RLS) | Split RLS into `anon` public read and `authenticated` staff write, preventing unauthorized alterations while resolving RLS policy violations. |
 | 2026-09-08 | All | Markdown-Driven Development (MDD) Standard | Formalized specification-first development methodology across documentation, tests, and automated build verification. |
-| 2026-09-12 | 4 | In-Page Product Detail Dialogue + Multi-Image Gallery | Clicking any piece opens a responsive modal with multiple photography angles, thumbnail strip, and direct WhatsApp CTAs without page navigation. |
+| 2026-09-12 | 4, 7 | In-Page Multi-Angle Product Detail Dialogue (`ProductDetailModal.tsx`) | Clicking any piece opens in-page dialogue with zero scroll loss, active stage carousel, thumbnail strip, specs, and WhatsApp conversions. |
+| 2026-09-12 | 7, 8 | Batch Multi-Image Upload & Click-to-Select Cover Photo (`ProductModal.tsx`) | Allows curators to upload multiple photos at once with WebP compression, click any photo to designate as Cover Image, and sync `images TEXT[]`. |
 
