@@ -72,7 +72,7 @@ const rentPlans = [
 const faqs = [
   {
     q: "What is the security deposit for rentals?",
-    a: "A refundable security deposit of 20% of the garment's retail value is collected. It is returned within 3 working days of successful garment return.",
+    a: "A refundable security deposit of 50% of the garment's retail value is collected. It is returned within 3 working days of successful garment return.",
   },
   {
     q: "Can I have the lehenga altered?",
@@ -116,10 +116,10 @@ export default function RentBuy() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: "Rental Pieces Available", value: "380+" },
-              { label: "Happy Rental Brides", value: "160+" },
-              { label: "Purchase Pieces", value: "120+" },
-              { label: "Avg. Customer Rating", value: "4.9 ★" },
+              { label: "Lehenga Designs", value: "100+" },
+              { label: "Happy Customers", value: "100+" },
+              { label: "Purchase Collections", value: "150+" },
+              { label: "Apparel Categories", value: "10+" },
             ].map((s) => (
               <div key={s.label} className="bg-[#3D3020] p-6">
                 <p className="font-serif text-3xl text-[#D4B483] font-semibold">
@@ -238,9 +238,8 @@ export default function RentBuy() {
             <em className="italic text-[#8B6A3E]">built to last generations</em>
           </h2>
           <p className="text-[#5C3D1E] leading-relaxed mb-4">
-            Our purchase collection features hand-picked pieces from labels like
-            Sabyasachi, Manish Malhotra, Anita Dongre, and Tarun Tahiliani —
-            each verified for authenticity and craftsmanship.
+            Our purchase collection features hand-picked pieces — each verified
+            for authenticity and craftsmanship.
           </p>
           <p className="text-[#5C3D1E] leading-relaxed mb-8">
             Every purchase includes alteration support, a post-purchase care
@@ -249,11 +248,9 @@ export default function RentBuy() {
           </p>
           <ul className="space-y-3 mb-10">
             {[
-              "Starting from ₹28,000",
-              "Designer label authentication certificate",
+              "Starting from ₹7,000",
               "Complimentary full alteration",
               "Heritage storage bag included",
-              "0% interest EMI available",
             ].map((item) => (
               <li
                 key={item}
