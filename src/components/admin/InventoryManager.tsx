@@ -318,9 +318,17 @@ export default function InventoryManager() {
                         <p className="font-serif text-sm font-semibold text-[#2D2418]">
                           {piece.title}
                         </p>
-                        <p className="text-[10px] text-[#8B6A3E] font-mono">
-                          {piece.sku || "LV-VAULT"}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-[10px] text-[#8B6A3E] font-mono">
+                            {piece.sku || "LV-VAULT"}
+                          </p>
+                          {piece.images && piece.images.length > 1 && (
+                            <span className="inline-flex items-center gap-1 text-[9px] text-[#8B6A3E] bg-[#EDE3CC] px-1.5 py-0.2 rounded border border-[#D4C4A0]/60">
+                              <Layers className="w-2.5 h-2.5 text-[#C9A84C]" />
+                              {piece.images.length} photos
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -438,6 +446,12 @@ export default function InventoryManager() {
                     {piece.tag}
                   </span>
                 </div>
+                {piece.images && piece.images.length > 1 && (
+                  <div className="absolute bottom-2 left-2 bg-[#2D2418]/85 text-[#FAF6ED] text-[8px] tracking-wider px-1.5 py-0.5 flex items-center gap-1">
+                    <Layers className="w-2.5 h-2.5 text-[#C9A84C]" />
+                    <span>{piece.images.length} photos</span>
+                  </div>
+                )}
                 <div className="absolute top-2 right-2">
                   <button
                     onClick={() => handleToggle(piece)}

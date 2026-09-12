@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   available BOOLEAN DEFAULT true,
   img TEXT NOT NULL,
   thumbnail TEXT,
+  images TEXT[],
   description TEXT,
   sku TEXT,
   color TEXT,
@@ -140,11 +141,13 @@ CREATE POLICY "Page Views Read" ON public.page_views
 -- --------------------------------------------------------------------
 -- 4. OPTIONAL MIGRATION: Upgrading Existing Tables
 -- --------------------------------------------------------------------
--- If you created products table previously without buy_price/current_price:
+-- If you created products table previously without buy_price/current_price/images:
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS buy_price TEXT NOT NULL DEFAULT '₹0';
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS current_price TEXT NOT NULL DEFAULT '₹0';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[];
 UPDATE public.products SET buy_price = price WHERE buy_price = '₹0' AND price IS NOT NULL;
 UPDATE public.products SET current_price = price WHERE current_price = '₹0' AND price IS NOT NULL;
+UPDATE public.products SET images = ARRAY[img] WHERE images IS NULL AND img IS NOT NULL;
 ```
 
 ---

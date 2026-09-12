@@ -14,6 +14,8 @@ import {
   CloudUpload,
   Image as ImageIcon,
   Zap,
+  Plus,
+  Trash2,
 } from "lucide-react"
 
 interface ProductModalProps {
@@ -71,6 +73,13 @@ export default function ProductModal({
   )
   const [img, setImg] = useState(initialData?.img || "")
   const [thumbnail, setThumbnail] = useState(initialData?.thumbnail || "")
+  const [galleryImages, setGalleryImages] = useState<string[]>(() => {
+    if (initialData?.images && initialData.images.length > 0) {
+      return initialData.images
+    }
+    return initialData?.img ? [initialData.img] : []
+  })
+  const [additionalImageUrl, setAdditionalImageUrl] = useState("")
   const [description, setDescription] = useState(initialData?.description || "")
   const [sku, setSku] = useState(
     initialData?.sku || `LV-${Math.floor(100 + Math.random() * 900)}`,
@@ -157,6 +166,19 @@ export default function ProductModal({
     }
   }
 
+  const handleAddGalleryImage = () => {
+    const trimmed = additionalImageUrl.trim()
+    if (!trimmed) return
+    if (!galleryImages.includes(trimmed)) {
+      setGalleryImages((prev) => [...prev, trimmed])
+    }
+    setAdditionalImageUrl("")
+  }
+
+  const handleRemoveGalleryImage = (idxToRemove: number) => {
+    setGalleryImages((prev) => prev.filter((_, i) => i !== idxToRemove))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim() || !img.trim()) {
@@ -171,6 +193,10 @@ export default function ProductModal({
       const formattedBuy = formatCurrency(buyPrice)
       const formattedCurrent = formatCurrency(currentPrice)
 
+      const allImages = Array.from(
+        new Set([img.trim(), ...galleryImages].filter(Boolean)),
+      )
+
       const productPayload = {
         ...(initialData ? { id: initialData.id } : {}),
         title: title.trim(),
@@ -183,6 +209,7 @@ export default function ProductModal({
         available,
         img: img.trim(),
         thumbnail: thumbnail || undefined,
+        images: allImages.length > 0 ? allImages : [img.trim()],
         description: description.trim(),
         sku: sku.trim(),
         color: color.trim(),
@@ -481,15 +508,89 @@ export default function ProductModal({
             {/* Manual Image URL Input fallback */}
             <div>
               <label className="block text-[11px] uppercase tracking-wider text-[#8B6A3E] mb-1">
-                Or Direct Image URL (CDN / Unsplash / Supabase Public URL)
+                Primary Image URL (Cover Photo)
               </label>
               <input
                 type="url"
                 value={img}
-                onChange={(e) => setImg(e.target.value)}
+                onChange={(e) => {
+                  setImg(e.target.value)
+                  if (
+                    e.target.value &&
+                    !galleryImages.includes(e.target.value)
+                  ) {
+                    setGalleryImages((prev) => [e.target.value, ...prev])
+                  }
+                }}
                 placeholder="https://..."
                 className="w-full px-3 py-2 bg-[#FAF6ED] border border-[#D4C4A0] text-xs text-[#2D2418] focus:outline-none focus:border-[#C9A84C]"
               />
+            </div>
+
+            {/* Additional Angles / Gallery Photos Section */}
+            <div className="pt-3 border-t border-[#D4C4A0]/60 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-[11px] uppercase tracking-wider text-[#8B6A3E] font-medium">
+                  Multi-Angle Gallery Photos ({galleryImages.length} angles)
+                </label>
+                <span className="text-[10px] text-[#8B6A3E]">
+                  Showcased in the collection detail dialogue
+                </span>
+              </div>
+
+              {/* Gallery Thumbnails List */}
+              {galleryImages.length > 0 && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-thin">
+                  {galleryImages.map((photoUrl, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-16 h-20 bg-[#EDE3CC] border border-[#D4C4A0] flex-shrink-0 group overflow-hidden"
+                    >
+                      <img
+                        src={photoUrl}
+                        alt={`Angle ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGalleryImage(idx)}
+                        className="absolute top-1 right-1 bg-[#2D2418]/80 hover:bg-red-800 text-white p-0.5 rounded transition-colors"
+                        title="Remove photo"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      <span className="absolute bottom-0.5 left-0.5 bg-[#2D2418]/80 text-[#FAF6ED] text-[8px] px-1 font-mono">
+                        #{idx + 1}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Angle URL Row */}
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={additionalImageUrl}
+                  onChange={(e) => setAdditionalImageUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      handleAddGalleryImage()
+                    }
+                  }}
+                  placeholder="Add additional photo URL (e.g. back angle, dupatta detail)..."
+                  className="flex-1 px-3 py-2 bg-[#FAF6ED] border border-[#D4C4A0] text-xs text-[#2D2418] focus:outline-none focus:border-[#C9A84C]"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddGalleryImage}
+                  className="px-3.5 py-2 bg-[#2D2418] hover:bg-[#5C3D1E] text-[#FAF6ED] text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1 shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Angle</span>
+                </button>
+              </div>
             </div>
           </div>
 
