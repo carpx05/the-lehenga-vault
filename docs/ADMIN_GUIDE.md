@@ -22,26 +22,46 @@ The application implements client-enforced role-based access control (RBAC):
       │    (Staff & Managers)   │       │   (Owner / Developer)   │
       └───────────┬─────────────┘       └───────────┬─────────────┘
                   │                                 │
-     ┌────────────┴───────────┐        ┌────────────┴───────────┐
-     │ • Analytics & Traffic  │        │ • Analytics & Traffic  │
-     │ • Vault Inventory      │        │ • Vault Inventory      │
-     │ • Change My Passcode   │        │ • Supabase & Storage   │
-     │ (Technical tab HIDDEN) │        │ • Change Master Key    │
-     └────────────────────────┘        └────────────────────────┘
+      ┌────────────┴───────────┐        ┌────────────┴───────────┐
+      │ • Analytics & Traffic  │        │ • Analytics & Traffic  │
+      │ • Appointments & Leads │        │ • Appointments & Leads │
+      │ • Vault Inventory      │        │ • Vault Inventory      │
+      │ • Change My Passcode   │        │ • Supabase & Storage   │
+      │ (Technical tab HIDDEN) │        │ • Change Master Key    │
+      └────────────────────────┘        └────────────────────────┘
 ```
 
 ### Credentials Reference (Supabase Auth)
 
 | Email | Role | Capabilities |
 | :--- | :--- | :--- |
-| **`thelehengavault@gmail.com`** | `admin` (Staff) | View traffic metrics, add/edit/delete lehengas, toggle availability, change own password. |
+| **`thelehengavault@gmail.com`** | `admin` (Staff) | View traffic metrics, view/manage appointments & client leads, add/edit/delete lehengas, toggle availability, change own password. |
 | **`ayush.b302@gmail.com`** | `superadmin` (Owner) | All admin capabilities + Supabase credentials manager, database syncing, latency diagnostics, SQL runner. |
 
 ---
 
 ## 2. Core Functional Modules
 
-### 👗 A. Vault Inventory Management
+### 📅 A. Styling Session Appointments & Leads CRM
+Located in the **"Appointments & Leads"** tab (`AppointmentsManager.tsx`):
+
+- **Real-Time Booking Ingestion**: Automatically captures every styling session request submitted through the storefront `/contact` form into local & cloud persistence (`lehenga_vault_appointments_v1`). Zero customer leads are lost even during network delays.
+- **Client Follow-Up Actions (1-Click)**:
+  - **WhatsApp Client**: Auto-opens a preformatted WhatsApp greeting addressed directly to the client's phone number.
+  - **Call Client**: Direct telephone link (`tel:`) for immediate phone follow-ups.
+- **Booking Status Workflow**:
+  - `New` (Fresh request)
+  - `Contacted` (Stylist reached out)
+  - `Confirmed` (Trial slot booked at Thane atelier)
+  - `Completed` (Consultation finished)
+- **Email Notification Service Configuration**:
+  - Connect **Web3Forms** (free 10-second key) to receive booking notifications directly at `thelehengavault@gmail.com` with client `Reply-To`.
+  - Connect **EmailJS** (free tier) for dual-dispatch: sends lead notification to `thelehengavault@gmail.com` AND delivers an automated trial confirmation copy to the client's inbox (`ayush.b302@gmail.com`).
+  - **Send Test Email**: Live verification button right inside the dashboard to confirm delivery instantly.
+
+---
+
+### 👗 B. Vault Inventory Management
 Located in the **"Vault Inventory"** tab (`InventoryManager.tsx`):
 
 - **Search & Filtering**: Search in real-time across piece titles, designers, tags (`Bridal`, `Indo-Western`, `Festive`, `Reception`), and SKU codes.
@@ -66,7 +86,7 @@ Located in the **"Vault Inventory"** tab (`InventoryManager.tsx`):
 
 ---
 
-### 📊 B. Real-Time Visitor Analytics Dashboard
+### 📊 C. Real-Time Visitor Analytics Dashboard
 Located in the **"Analytics & Traffic"** tab (`AnalyticsDashboard.tsx`):
 
 - **Zero Dummy Data**: Displays 100% real visitor events captured as users browse.
@@ -83,7 +103,7 @@ Located in the **"Analytics & Traffic"** tab (`AnalyticsDashboard.tsx`):
 
 ---
 
-### ☁️ C. Supabase & Storage Settings (SuperAdmin Only)
+### ☁️ D. Supabase & Storage Settings (SuperAdmin Only)
 Located in the **"Supabase & Storage"** tab (`SupabaseSettings.tsx`):
 
 - **Connection Tester**: Pings the Supabase API and calculates exact round-trip latency in milliseconds.

@@ -152,6 +152,30 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[];
 UPDATE public.products SET buy_price = price WHERE buy_price = '₹0' AND price IS NOT NULL;
 UPDATE public.products SET current_price = price WHERE current_price = '₹0' AND price IS NOT NULL;
 UPDATE public.products SET images = ARRAY[img] WHERE images IS NULL AND img IS NOT NULL;
+
+-- --------------------------------------------------------------------
+-- 5. OPTIONAL: Styling Appointments CRM Cloud Table
+-- --------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.appointments (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  email TEXT,
+  occasion TEXT,
+  event_date TEXT,
+  interest TEXT,
+  message TEXT,
+  status TEXT NOT NULL DEFAULT 'new',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public insert for appointments" ON public.appointments
+  FOR INSERT TO anon WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated staff read/write appointments" ON public.appointments
+  FOR ALL TO authenticated USING (true);
 ```
 
 ---

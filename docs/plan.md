@@ -381,4 +381,8 @@ Record anything a future reader would otherwise have to guess.
 | 2026-09-08 | All | Markdown-Driven Development (MDD) Standard | Formalized specification-first development methodology across documentation, tests, and automated build verification. |
 | 2026-09-12 | 4, 7 | In-Page Multi-Angle Product Detail Dialogue (`ProductDetailModal.tsx`) | Clicking any piece opens in-page dialogue with zero scroll loss, active stage carousel, thumbnail strip, specs, and WhatsApp conversions. |
 | 2026-09-12 | 7, 8 | Batch Multi-Image Upload & Click-to-Select Cover Photo (`ProductModal.tsx`) | Allows curators to upload multiple photos at once with WebP compression, click any photo to designate as Cover Image, and sync `images TEXT[]`. |
+| 2026-09-12 | 5, 9 | Plain ASCII WhatsApp Formatting & Zero Emojis (`whatsapp.ts`) | Replaced all unicode sparkle emojis and bullet glyphs with plain ASCII text and standard hyphens to prevent cross-device mobile encoding glitches. |
+| 2026-09-12 | 8, 9 | Lead CRM Storage & Appointments Manager (`AppointmentsManager.tsx`) | Captures storefront styling appointment requests in local/cloud persistence (`appointmentsStorage.ts`) with status workflows and 1-click WhatsApp/Call triggers. |
+| 2026-09-12 | 9 | Google DoH MX Email Verification & Auto-Suggestions (`emailValidator.ts`) | Optional, non-intrusive DNS MX lookup via Google DNS-over-HTTPS and typo auto-suggestions without requiring raw port 25 or paid verification APIs. |
+| 2026-09-12 | 8, 9 | Multi-Provider Email Dispatch Engine (`emailService.ts`) | Supported Web3Forms (zero-CORS developer API for atelier notification) and EmailJS (dual-dispatch for atelier notification and customer confirmation copy). |
 

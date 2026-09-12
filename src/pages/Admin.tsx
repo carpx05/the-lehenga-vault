@@ -7,6 +7,7 @@ import AnalyticsDashboard from "../components/admin/AnalyticsDashboard"
 import InventoryManager from "../components/admin/InventoryManager"
 import SupabaseSettings from "../components/admin/SupabaseSettings"
 import SecuritySettings from "../components/admin/SecuritySettings"
+import AppointmentsManager from "../components/admin/AppointmentsManager"
 import {
   BarChart3,
   Layers,
@@ -15,9 +16,10 @@ import {
   LogOut,
   ExternalLink,
   Sparkles,
+  Calendar,
 } from "lucide-react"
 
-type AdminTab = "analytics" | "inventory" | "supabase" | "security"
+type AdminTab = "analytics" | "appointments" | "inventory" | "supabase" | "security"
 
 export default function Admin() {
   const { isAuthenticated, user, logout, isSuperAdmin } = useAuth()
@@ -30,7 +32,7 @@ export default function Admin() {
   }
 
   // Define tab navigation based on role:
-  // Staff 'admin' only sees Analytics, Inventory, and Passcode.
+  // Both staff 'admin' and 'superadmin' see Analytics, Appointments, Inventory, and Passcode.
   // 'superadmin' sees full technical Supabase & Storage infrastructure.
   const tabs: {
     id: AdminTab
@@ -38,6 +40,7 @@ export default function Admin() {
     icon: React.ComponentType<{ className?: string }>
   }[] = [
     { id: "analytics", label: "Analytics & Traffic", icon: BarChart3 },
+    { id: "appointments", label: "Appointments & Leads", icon: Calendar },
     { id: "inventory", label: "Vault Inventory", icon: Layers },
     ...(isSuperAdmin
       ? [
@@ -165,6 +168,7 @@ export default function Admin() {
         {/* Content Area */}
         <main className="flex-1 min-w-0">
           {activeTab === "analytics" && <AnalyticsDashboard />}
+          {activeTab === "appointments" && <AppointmentsManager />}
           {activeTab === "inventory" && <InventoryManager />}
           {activeTab === "supabase" && isSuperAdmin && <SupabaseSettings />}
           {activeTab === "security" && <SecuritySettings />}
