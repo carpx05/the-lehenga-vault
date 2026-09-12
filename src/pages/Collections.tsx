@@ -405,7 +405,12 @@ export default function Collections() {
       {/* Product Detail Dialogue Box */}
       <ProductDetailModal
         isOpen={Boolean(selectedPiece)}
-        piece={selectedPiece}
+        piece={
+          selectedPiece
+            ? products.find((p) => String(p.id) === String(selectedPiece.id)) ||
+              selectedPiece
+            : null
+        }
         onClose={() => setSelectedPiece(null)}
       />
     </div>

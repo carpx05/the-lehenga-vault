@@ -12,6 +12,10 @@ import {
   fetchProductsFromSupabase,
   deleteProductFromSupabase,
 } from "../lib/supabase"
+import {
+  saveCatalogToIndexedDB,
+  getCatalogFromIndexedDB,
+} from "../lib/inventoryStorage"
 
 const STORAGE_KEY = "lehenga_vault_inventory_v1"
 
@@ -330,14 +334,29 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
             const seedMatch = INITIAL_PRODUCTS.find(
               (ip) => String(ip.id) === String(p.id),
             )
+
+            // Purge any stale, dead blob: URLs from previous sessions
+            const rawImages = Array.isArray(p.images) ? p.images : []
+            const validImages = rawImages.filter(
+              (url: string) =>
+                typeof url === "string" && !url.startsWith("blob:"),
+            )
+
+            let coverImg = p.img
+            if (!coverImg || coverImg.startsWith("blob:")) {
+              coverImg = validImages[0] || seedMatch?.img || p.img
+            }
+
             const images =
-              p.images && p.images.length > 0
-                ? p.images
+              validImages.length > 0
+                ? validImages
                 : seedMatch?.images && seedMatch.images.length > 0
                   ? seedMatch.images
-                  : [p.img]
+                  : [coverImg]
+
             return {
               ...p,
+              img: coverImg,
               price: current,
               buy_price: buy,
               current_price: current,
@@ -354,24 +373,76 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  // Persist to local storage whenever products change
+  // Persist to local storage and IndexedDB whenever products change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(products))
     } catch {
       // storage quota
     }
+    // Also save to IndexedDB as permanent storage without quota limits
+    saveCatalogToIndexedDB(products).catch(() => {})
   }, [products])
 
-  // Attempt background sync with Supabase if configured
+  // Hydrate from IndexedDB and attempt background sync with Supabase
   useEffect(() => {
+    let isMounted = true
+
+    // 1. Check IndexedDB for any catalogs saved beyond localStorage quota
+    getCatalogFromIndexedDB().then((idbProducts) => {
+      if (isMounted && idbProducts && idbProducts.length > 0) {
+        setProducts((current) => {
+          return idbProducts.map((ip) => {
+            const curMatch = current.find((c) => String(c.id) === String(ip.id))
+            const rawImgs = Array.isArray(ip.images) ? ip.images : []
+            const validImgs = rawImgs.filter(
+              (u: string) => typeof u === "string" && !u.startsWith("blob:"),
+            )
+            return {
+              ...ip,
+              images:
+                validImgs.length > 0
+                  ? validImgs
+                  : curMatch?.images && curMatch.images.length > 0
+                    ? curMatch.images
+                    : [ip.img],
+            }
+          })
+        })
+      }
+    })
+
+    // 2. Attempt background sync with Supabase if configured
     const config = getSavedSupabaseConfig()
     if (config.url && config.anonKey) {
       fetchProductsFromSupabase(config).then((cloudProducts) => {
-        if (cloudProducts && cloudProducts.length > 0) {
-          setProducts(cloudProducts)
+        if (isMounted && cloudProducts && cloudProducts.length > 0) {
+          setProducts((currentProducts) => {
+            return cloudProducts.map((cloudItem) => {
+              const localMatch = currentProducts.find(
+                (lp) => String(lp.id) === String(cloudItem.id),
+              )
+              const hasCloudMultiple =
+                cloudItem.images && cloudItem.images.length > 1
+              const hasLocalMultiple =
+                localMatch?.images && localMatch.images.length > 1
+
+              let finalImages = cloudItem.images
+              if (!hasCloudMultiple && hasLocalMultiple && localMatch) {
+                finalImages = localMatch.images
+              }
+              return {
+                ...cloudItem,
+                images: finalImages || [cloudItem.img],
+              }
+            })
+          })
         }
       })
+    }
+
+    return () => {
+      isMounted = false
     }
   }, [])
 
@@ -447,6 +518,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const resetToDefault = useCallback(() => {
     setProducts(INITIAL_PRODUCTS)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PRODUCTS))
+    saveCatalogToIndexedDB(INITIAL_PRODUCTS).catch(() => {})
   }, [])
 
   const syncWithSupabase = useCallback(async () => {
