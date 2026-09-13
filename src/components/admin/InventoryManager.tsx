@@ -87,11 +87,23 @@ export default function InventoryManager() {
     productData: Omit<Product, "id"> | Product,
   ) => {
     if ("id" in productData && productData.id) {
-      await updateProduct(productData.id, productData)
-      showNotification(`Updated "${productData.title}" successfully.`)
+      const res = await updateProduct(productData.id, productData)
+      if (res && !res.success) {
+        showNotification(
+          `Updated "${productData.title}" locally (Cloud notice: ${res.error})`,
+        )
+      } else {
+        showNotification(`Updated "${productData.title}" successfully.`)
+      }
     } else {
-      await addProduct(productData)
-      showNotification(`Added "${productData.title}" to inventory.`)
+      const res = await addProduct(productData)
+      if (res && !res.success) {
+        showNotification(
+          `Added "${productData.title}" locally (Cloud notice: ${res.error})`,
+        )
+      } else {
+        showNotification(`Added "${productData.title}" to inventory.`)
+      }
     }
   }
 

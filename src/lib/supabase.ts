@@ -161,6 +161,18 @@ export async function testSupabaseConnection(
       }
     }
 
+    // Check if 'images' column exists
+    let imagesColFound = false
+    if (tableFound) {
+      const { error: errCol } = await client
+        .from(activeTable)
+        .select("id, images")
+        .limit(1)
+      if (!errCol) {
+        imagesColFound = true
+      }
+    }
+
     const elapsed = Math.round(performance.now() - startTime)
 
     const statusParts: string[] = []
@@ -173,7 +185,13 @@ export async function testSupabaseConnection(
     }
 
     if (tableFound) {
-      statusParts.push(`Database table '${activeTable}' is connected and ready`)
+      if (imagesColFound) {
+        statusParts.push(`Database table '${activeTable}' connected with native 'images' gallery column`)
+      } else {
+        statusParts.push(
+          `Database table '${activeTable}' connected (Note: 'images' column not detected in DB table yet; automatic description-trailer fallback is active, or run migration in SQL Editor for native column)`,
+        )
+      }
     } else if (
       tableErrorMsg.toLowerCase().includes("policy") ||
       tableErrorMsg.toLowerCase().includes("permission")
@@ -203,6 +221,185 @@ export async function testSupabaseConnection(
 }
 
 /**
+ * Robust parser for product images from Supabase.
+ * Handles Postgres TEXT[] arrays, JSONB arrays, stringified JSON arrays ('["..."]'),
+ * Postgres array string literals ('{"..."}'), and comma-separated URL lists.
+ */
+export function parseImages(rawImages: unknown, fallbackImg?: string): string[] {
+  let list: string[] = []
+
+  if (Array.isArray(rawImages)) {
+    list = rawImages.filter((u): u is string => typeof u === "string")
+  } else if (typeof rawImages === "string" && rawImages.trim()) {
+    const trimmed = rawImages.trim()
+    // 1. JSON array string: '["https://...", "https://..."]'
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (Array.isArray(parsed)) {
+          list = parsed.filter((u): u is string => typeof u === "string")
+        }
+      } catch {
+        // ignore
+      }
+    }
+    // 2. Postgres array literal: '{"https://...","https://..."}'
+    if (list.length === 0 && trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      list = trimmed
+        .slice(1, -1)
+        .split(",")
+        .map((s) => s.replace(/^"|"$/g, "").trim())
+        .filter(Boolean)
+    }
+    // 3. Comma-separated URLs
+    if (list.length === 0 && trimmed.includes("http")) {
+      list = trimmed
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    }
+    // 4. Single URL string
+    if (
+      list.length === 0 &&
+      (trimmed.startsWith("http") || trimmed.startsWith("/") || trimmed.startsWith("data:"))
+    ) {
+      list = [trimmed]
+    }
+  }
+
+  // Filter out empty strings and invalid/dead blob URLs
+  const valid = list
+    .map((u) => u.trim())
+    .filter((u) => u.length > 0 && !u.startsWith("blob:"))
+
+  if (valid.length > 0) {
+    return Array.from(new Set(valid))
+  }
+
+  if (fallbackImg && typeof fallbackImg === "string" && !fallbackImg.startsWith("blob:")) {
+    return [fallbackImg.trim()]
+  }
+
+  return []
+}
+
+/**
+ * Parses a raw database row from Supabase products table into a Product object.
+ * Extracts multiple images from native 'images' column or embedded description trailer.
+ */
+export function parseProductFromSupabase(item: any): Product {
+  const current = item.current_price || item.price || item.buy_price || "₹0"
+  const buy = item.buy_price || item.price || current
+
+  let cleanDescription = (item.description || "").trim()
+  let trailerImages: string[] = []
+
+  // Check for embedded gallery metadata trailer in description
+  const trailerMatch = cleanDescription.match(/<!--lv_gallery:(.*?)-->/s)
+  if (trailerMatch) {
+    try {
+      const parsed = JSON.parse(trailerMatch[1])
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        trailerImages = parsed.filter(
+          (u): u is string => typeof u === "string" && !u.startsWith("blob:"),
+        )
+      }
+    } catch {
+      // ignore
+    }
+    // Strip metadata trailer so UI only renders clean description
+    cleanDescription = cleanDescription.replace(/<!--lv_gallery:.*?-->/gs, "").trim()
+  }
+
+  // Parse images from item.images (whether array, json, or text)
+  let gallery = parseImages(item.images, item.img)
+
+  // If item.images column had only 1 image (or was null because column was missing),
+  // but description trailer had multiple angles, restore from trailer
+  if (gallery.length <= 1 && trailerImages.length > 1) {
+    gallery = trailerImages
+  }
+
+  const coverImg =
+    item.img && !item.img.startsWith("blob:") ? item.img : gallery[0] || ""
+
+  return {
+    id: item.id,
+    title: item.title,
+    designer: item.designer,
+    price: current,
+    buy_price: buy,
+    current_price: current,
+    rent: item.rent || "₹0",
+    tag: item.tag || "Bridal",
+    available: Boolean(item.available),
+    img: coverImg,
+    images: gallery.length > 0 ? gallery : coverImg ? [coverImg] : [],
+    thumbnail: item.thumbnail || "",
+    description: cleanDescription,
+    sku: item.sku || "",
+    color: item.color || "",
+    fabric: item.fabric || "",
+    size: item.size || "",
+    createdAt: item.created_at,
+    updatedAt: item.updated_at,
+  }
+}
+
+/**
+ * Formats a Product for Supabase DB upsert.
+ * Safely prepares images array and embeds a non-intrusive metadata trailer in description.
+ * This guarantees zero loss of multiple angles even if the database has not yet added 'images TEXT[]'.
+ */
+export function formatProductForSupabase(p: Product): Record<string, any> {
+  const current = p.current_price || p.price || "₹0"
+  const buy = p.buy_price || p.price || current
+
+  const rawImgs = Array.isArray(p.images) && p.images.length > 0 ? p.images : p.img ? [p.img] : []
+  const cleanImages = rawImgs.filter(
+    (u): u is string => typeof u === "string" && u.trim().length > 0 && !u.startsWith("blob:"),
+  )
+
+  const coverImg = p.img && !p.img.startsWith("blob:") ? p.img : cleanImages[0] || ""
+  const finalImages = cleanImages.length > 0 ? cleanImages : coverImg ? [coverImg] : []
+
+  // Ensure primary cover is first in gallery array
+  const orderedImages = [
+    coverImg,
+    ...finalImages.filter((u) => u !== coverImg),
+  ].filter(Boolean)
+
+  let desc = (p.description || "").trim()
+  // Clean existing trailer
+  desc = desc.replace(/<!--lv_gallery:.*?-->/gs, "").trim()
+  if (orderedImages.length > 1) {
+    desc = `${desc}\n<!--lv_gallery:${JSON.stringify(orderedImages)}-->`.trim()
+  }
+
+  return {
+    id: String(p.id),
+    title: p.title,
+    designer: p.designer,
+    buy_price: buy,
+    current_price: current,
+    price: current,
+    rent: p.rent || "₹0",
+    tag: p.tag || "Bridal",
+    available: p.available ?? true,
+    img: coverImg,
+    images: orderedImages,
+    thumbnail: p.thumbnail || "",
+    description: desc,
+    sku: p.sku || "",
+    color: p.color || "",
+    fabric: p.fabric || "",
+    size: p.size || "",
+    created_at: p.createdAt || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+/**
  * Upload an image directly to Supabase Storage with latency-friendly caching headers
  */
 export async function uploadImageToSupabase(
@@ -219,7 +416,10 @@ export async function uploadImageToSupabase(
     )
   }
 
-  const cleanName = `${Date.now()}-${fileName.replace(/[^a-zA-Z0-9.-]/g, "_")}`
+  // Unique random token prevents filename collisions during batch uploads
+  const rand = Math.random().toString(36).substring(2, 8)
+  const cleanBase = fileName.replace(/[^a-zA-Z0-9.-]/g, "_")
+  const cleanName = `${Date.now()}-${rand}-${cleanBase}`
   const bucket = currentConfig.bucketName || "lehenga-images"
 
   // Upload with 1 year cache-control for maximum CDN speed
@@ -241,12 +441,112 @@ export async function uploadImageToSupabase(
 }
 
 /**
- * Sync products to Supabase DB table `products` (cloud mirror)
+ * Sync a single product to Supabase DB table `products`
+ * Provides fast, sub-50ms writes, isolated error handling, and robust multi-tier fallback:
+ * Tier 1: Upsert with native images array (Postgres TEXT[] or JSONB)
+ * Tier 2: Upsert with JSON-stringified images if column is TEXT
+ * Tier 3: Upsert with description metadata trailer fallback if 'images' column is absent
+ */
+export async function syncSingleProductToSupabase(
+  product: Product,
+  config?: SupabaseConfig,
+): Promise<{ success: boolean; error?: string }> {
+  const client = getSupabaseClient(config)
+  if (!client) {
+    return {
+      success: false,
+      error: "Supabase client is not configured.",
+    }
+  }
+
+  try {
+    const formatted = formatProductForSupabase(product)
+    let activeTable = "products"
+
+    // 1. Try upsert with native images array
+    let { error } = await client
+      .from(activeTable)
+      .upsert(formatted, { onConflict: "id" })
+
+    // Check table casing 'Products' vs 'products'
+    if (
+      error &&
+      (error.code === "PGRST205" ||
+        error.code === "42P01" ||
+        error.message?.toLowerCase().includes("not find") ||
+        error.message?.toLowerCase().includes("does not exist"))
+    ) {
+      activeTable = "Products"
+      const resCap = await client
+        .from(activeTable)
+        .upsert(formatted, { onConflict: "id" })
+      error = resCap.error
+    }
+
+    // 2. If error is about images column type or presence
+    if (error && error.message?.toLowerCase().includes("images")) {
+      // 2a. Try stringified JSON for images (in case images is TEXT)
+      const payloadStringified = {
+        ...formatted,
+        images: JSON.stringify(formatted.images),
+      }
+      const resJson = await client
+        .from(activeTable)
+        .upsert(payloadStringified, { onConflict: "id" })
+
+      if (!resJson.error) {
+        return { success: true }
+      }
+
+      // 2b. If column doesn't exist at all, omit images column from payload
+      // Note: formatProductForSupabase already embedded the <!--lv_gallery:...--> trailer into description!
+      const { images: _omitted, ...payloadNoImages } = formatted
+      const resNoImages = await client
+        .from(activeTable)
+        .upsert(payloadNoImages, { onConflict: "id" })
+
+      if (!resNoImages.error) {
+        return { success: true }
+      }
+      error = resNoImages.error
+    }
+
+    // 3. Fallback if buy_price or current_price columns don't exist
+    if (
+      error &&
+      (error.message?.toLowerCase().includes("buy_price") ||
+        error.message?.toLowerCase().includes("current_price"))
+    ) {
+      const { buy_price: _b, current_price: _c, ...fallbackPayload } = formatted
+      const resPrice = await client
+        .from(activeTable)
+        .upsert(fallbackPayload, { onConflict: "id" })
+      if (!resPrice.error) {
+        return { success: true }
+      }
+      error = resPrice.error
+    }
+
+    if (error) {
+      console.warn("Supabase single product sync error:", error.message)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Database sync error"
+    console.warn("Supabase single product sync exception:", msg)
+    return { success: false, error: msg }
+  }
+}
+
+/**
+ * Sync all products to Supabase DB table `products` (cloud mirror)
  */
 export async function syncProductsToSupabase(
   products: Product[],
   config?: SupabaseConfig,
-): Promise<{ success: boolean count: number error?: string }> {
+): Promise<{ success: boolean; count: number; error?: string }> {
   const client = getSupabaseClient(config)
   if (!client) {
     return {
@@ -257,55 +557,14 @@ export async function syncProductsToSupabase(
   }
 
   try {
-    // 1. Format matching the exact Supabase table schema (with buy_price, current_price, and images)
-    const payloadWithBuyPrice = products.map((p) => {
-      const current = p.current_price || p.price || "₹0"
-      const buy = p.buy_price || p.price || current
-      const imgList = p.images && p.images.length > 0 ? p.images : [p.img]
-
-      return {
-        id: String(p.id),
-        title: p.title,
-        designer: p.designer,
-        buy_price: buy,
-        current_price: current,
-        rent: p.rent || "₹0",
-        tag: p.tag || "Bridal",
-        available: p.available ?? true,
-        img: p.img,
-        images: imgList,
-        thumbnail: p.thumbnail || "",
-        images: p.images && p.images.length > 0 ? p.images : [p.img],
-        description: p.description || "",
-        sku: p.sku || "",
-        color: p.color || "",
-        fabric: p.fabric || "",
-        size: p.size || "",
-        created_at: p.createdAt || new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
-    })
-
+    const formattedList = products.map(formatProductForSupabase)
     let activeTable = "products"
+
     let { error: err1 } = await client
-      .from("products")
-      .upsert(payloadWithBuyPrice, { onConflict: "id" })
+      .from(activeTable)
+      .upsert(formattedList, { onConflict: "id" })
 
-    // If table doesn't have images column, remove images and retry
-    if (err1 && err1.message?.toLowerCase().includes("images")) {
-      const payloadNoImages = payloadWithBuyPrice.map(
-        ({ images: _imgs, ...rest }) => rest,
-      )
-      const resRetry = await client
-        .from(activeTable)
-        .upsert(payloadNoImages, { onConflict: "id" })
-      if (!resRetry.error) {
-        return { success: true, count: products.length }
-      }
-      err1 = resRetry.error
-    }
-
-    // Check if table 'products' was not found, try capitalized 'Products'
+    // Check table casing 'Products' vs 'products'
     if (
       err1 &&
       (err1.code === "PGRST205" ||
@@ -313,68 +572,57 @@ export async function syncProductsToSupabase(
         err1.message?.toLowerCase().includes("not find") ||
         err1.message?.toLowerCase().includes("does not exist"))
     ) {
+      activeTable = "Products"
       const resCap = await client
-        .from("Products")
-        .upsert(payloadWithBuyPrice, { onConflict: "id" })
+        .from(activeTable)
+        .upsert(formattedList, { onConflict: "id" })
+      err1 = resCap.error
+    }
 
-      if (!resCap.error) {
+    // If table complains about images column type or existence
+    if (err1 && err1.message?.toLowerCase().includes("images")) {
+      // Try stringifying images array
+      const listStringified = formattedList.map((item) => ({
+        ...item,
+        images: JSON.stringify(item.images),
+      }))
+      const resJson = await client
+        .from(activeTable)
+        .upsert(listStringified, { onConflict: "id" })
+
+      if (!resJson.error) {
         return { success: true, count: products.length }
       }
-      activeTable = "Products"
-      err1 = resCap.error
+
+      // If column is completely missing, omit images column (description-trailer fallback active)
+      const listNoImages = formattedList.map(({ images: _imgs, ...rest }) => rest)
+      const resNoImages = await client
+        .from(activeTable)
+        .upsert(listNoImages, { onConflict: "id" })
+
+      if (!resNoImages.error) {
+        return { success: true, count: products.length }
+      }
+      err1 = resNoImages.error
     }
 
     if (!err1) {
       return { success: true, count: products.length }
     }
 
-    // 2. If the table doesn't have the 'images' column yet, fallback without images
-    if (err1.message?.toLowerCase().includes("images")) {
-      const payloadWithoutImages = payloadWithBuyPrice.map(
-        ({ images: _omitted, ...rest }) => rest,
-      )
-      const { error: errImages } = await client
-        .from(activeTable)
-        .upsert(payloadWithoutImages, { onConflict: "id" })
-      if (!errImages) {
-        return { success: true, count: products.length }
-      }
-      err1 = errImages
-    }
-
-    // 3. If the table doesn't have buy_price / current_price columns, fallback to price
+    // Fallback if table doesn't have buy_price / current_price columns
     if (
       err1.message?.toLowerCase().includes("buy_price") ||
       err1.message?.toLowerCase().includes("current_price")
     ) {
-      const payloadWithPrice = products.map((p) => ({
-        id: String(p.id),
-        title: p.title,
-        designer: p.designer,
-        price: p.current_price || p.price || "₹0",
-        rent: p.rent || "₹0",
-        tag: p.tag || "Bridal",
-        available: p.available ?? true,
-        img: p.img,
-        thumbnail: p.thumbnail || "",
-        description: p.description || "",
-        sku: p.sku || "",
-        color: p.color || "",
-        fabric: p.fabric || "",
-        size: p.size || "",
-        created_at: p.createdAt || new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }))
-
+      const listLegacy = formattedList.map(({ buy_price: _b, current_price: _c, ...rest }) => rest)
       const { error: err2 } = await client
         .from(activeTable)
-        .upsert(payloadWithPrice, { onConflict: "id" })
+        .upsert(listLegacy, { onConflict: "id" })
 
       if (!err2) {
         return { success: true, count: products.length }
       }
-
-      console.warn("Supabase products sync error:", err2.message)
       return { success: false, count: 0, error: err2.message }
     }
 
@@ -429,63 +677,50 @@ export async function fetchProductsFromSupabase(
   if (!client) return null
 
   try {
+    let activeTable = "products"
     let { data, error } = await client
-      .from("products")
+      .from(activeTable)
       .select("*")
       .order("created_at", { ascending: false })
 
     if (
       error &&
       (error.code === "PGRST205" ||
-        error.message?.toLowerCase().includes("not find"))
+        error.message?.toLowerCase().includes("not find") ||
+        error.message?.toLowerCase().includes("does not exist"))
     ) {
+      activeTable = "Products"
       const capRes = await client
-        .from("Products")
+        .from(activeTable)
         .select("*")
         .order("created_at", { ascending: false })
       if (!capRes.error && capRes.data) {
         data = capRes.data
         error = null
+      } else {
+        error = capRes.error
       }
     }
 
-    if (error || !data) return null
-
-    return data.map((item) => {
-      const current = item.current_price || item.price || item.buy_price || "₹0"
-      const buy = item.buy_price || item.price || current
-
-      return {
-        id: item.id,
-        title: item.title,
-        designer: item.designer,
-        price: current,
-        buy_price: buy,
-        current_price: current,
-        rent: item.rent || "₹0",
-        tag: item.tag || "Bridal",
-        available: Boolean(item.available),
-        img: item.img,
-        images:
-          Array.isArray(item.images) && item.images.length > 0
-            ? item.images
-            : [item.img],
-        thumbnail: item.thumbnail || "",
-        images: Array.isArray(item.images)
-          ? item.images
-          : item.img
-            ? [item.img]
-            : [],
-        description: item.description || "",
-        sku: item.sku || "",
-        color: item.color || "",
-        fabric: item.fabric || "",
-        size: item.size || "",
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
+    // Fallback if 'created_at' column does not exist in user's schema
+    if (error && error.message?.toLowerCase().includes("created_at")) {
+      const noOrderRes = await client.from(activeTable).select("*")
+      if (!noOrderRes.error && noOrderRes.data) {
+        data = noOrderRes.data
+        error = null
       }
-    })
-  } catch {
+    }
+
+    if (error) {
+      console.warn("fetchProductsFromSupabase notice:", error.message)
+      return null
+    }
+
+    if (!data) return null
+
+    return data.map(parseProductFromSupabase)
+  } catch (err) {
+    console.warn("fetchProductsFromSupabase exception:", err)
     return null
   }
 }

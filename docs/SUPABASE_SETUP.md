@@ -82,7 +82,6 @@ CREATE TABLE IF NOT EXISTS public.products (
   img TEXT NOT NULL,
   images TEXT[],
   thumbnail TEXT,
-  images TEXT[],
   description TEXT,
   sku TEXT,
   color TEXT,
