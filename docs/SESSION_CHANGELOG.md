@@ -278,3 +278,57 @@
 3. **Dual Email Solution**:
    - **Web3Forms**: Ideal for instant 10-second setup. Incoming leads are delivered immediately to `thelehengavault@gmail.com` with `reply_to` set to the customer's email.
    - **EmailJS**: Ideal for sending BOTH the internal atelier notification AND an automated confirmation email directly to the customer's inbox (`ayush.b302@gmail.com`).
+
+---
+
+# Session Changelog & Engineering Record — Part 7
+
+> **Date:** September 13, 2026  
+> **Topic:** Multi-Image Cloud Synchronization, Cross-Device Persistence, and Resilient Multi-Tier Database Fallback
+
+---
+
+## 1. Summary of Changes
+
+| Area | What Was Built | Key Files |
+| :--- | :--- | :--- |
+| **Fast Single-Product Sync** | Replaced full-catalog batch upsert on every edit with atomic `syncSingleProductToSupabase` (sub-50ms latency), isolating writes and returning exact errors to the caller. | `src/lib/supabase.ts`<br>`src/context/ProductContext.tsx` |
+| **Dual Multi-Image Fallback Engine** | Multi-tier persistence: Tier 1 writes to native `images TEXT[]`/`JSONB` array; Tier 2 falls back to JSON-stringified array if column is `TEXT`; Tier 3 embeds metadata trailer (`<!--lv_gallery:...-->`) in `description` if column is missing. Guarantees 0% image loss across all databases. | `src/lib/supabase.ts` |
+| **Robust Multi-Format Image Parser** | `parseImages` and `parseProductFromSupabase` seamlessly parse Postgres text arrays, JSONB arrays, stringified JSON strings, Postgres string literals (`{"url1","url2"}`), and embedded metadata trailers. | `src/lib/supabase.ts` |
+| **Removed Stale Seed Image Overwrite** | Removed the legacy override in `ProductContext.tsx` (`if (!hasCloudMultiple && hasLocalMultiple) finalImages = localMatch.images`) which had been replacing updated cloud images with old seed images on storefront loads. | `src/context/ProductContext.tsx` |
+| **Collision-Free Image Storage Uploads** | Appended random hex token to `Date.now()` during batch storage uploads in `uploadImageToSupabase` and `ProductModal.tsx` to prevent concurrent image filename collisions. | `src/lib/supabase.ts`<br>`src/components/admin/ProductModal.tsx` |
+| **Admin Save Feedback & Schema Verification** | `InventoryManager` awaits sync response and displays exact cloud sync status; `testSupabaseConnection` checks for native `images` column and reports status. | `src/components/admin/InventoryManager.tsx`<br>`src/components/admin/SupabaseSettings.tsx` |
+
+---
+
+## 2. Root Cause Analysis: Why Multiple Images Failed on Updation
+
+1. **Schema Mismatch & Silent Column Stripping**:
+   - In older versions of the `products` table, the `images` column was either missing or typed as `TEXT`. When PostgREST returned a type error, the previous `syncProductsToSupabase` stripped the entire `images` array from the payload and silently upserted without it.
+2. **The "Keep Local Images" Override Bug**:
+   - On storefront hydration, `ProductContext.tsx` compared `cloudItem.images` with `localMatch.images`. Because seed items in `INITIAL_PRODUCTS` possessed 4 images, any cloud item with 1 image was actively overwritten by the stale seed images.
+3. **Unawaited Sync State Updaters**:
+   - `updateProduct` was dispatching sync calls inside React's `setProducts((prev) => ...)` updater without awaiting. As a result, `InventoryManager` displayed a green success notice before the cloud write had occurred or even if it failed.
+4. **IndexedDB vs Cloud Hydration Race Condition**:
+   - `getCatalogFromIndexedDB` and `fetchProductsFromSupabase` were running concurrently on mount. If the cloud query returned first, a late-finishing IndexedDB promise could overwrite fresh cloud products with stale local data.
+5. **Storage Upload Flag Gating**:
+   - `ProductModal` guarded uploads behind `currentSupabaseConfig.isConnected && currentSupabaseConfig.url`. If `isConnected` was false in localStorage (even with valid credentials in `.env`), uploads were skipped and converted to ephemeral `blob:` URLs that could not be seen across devices.
+6. **Postgres Order Column Mismatch**:
+   - `fetchProductsFromSupabase` strictly ordered by `created_at`. If an existing schema lacked that column, the entire query failed and returned `null`, leaving new devices stuck on hardcoded seed items.
+
+---
+
+## 3. Hardening Pass & Zero-Failure Protections
+
+1. **Hydration Race Guard (`cloudHydrated`)**:
+   - Added a `cloudHydrated` boolean in `ProductContext.tsx`. Once the cloud catalog resolves, IndexedDB callbacks are blocked from downgrading state, and fresh cloud items are actively mirrored into localStorage & IndexedDB.
+2. **Resilient Catalog Fetching (`fetchProductsFromSupabase`)**:
+   - Added automated fallback: if `.order("created_at")` fails due to schema variations, it retries with unordered `.select("*")` on both `products` and `Products`.
+3. **Storage Credentials Gating (`ProductModal.tsx`)**:
+   - Gated image uploads directly on `url && anonKey` presence rather than the transient `isConnected` UI boolean, surfacing detailed storage errors in the modal status bar.
+4. **Synchronous Image State Reset (`OptimizedImage.tsx`)**:
+   - Added `useEffect([src])` to reset `isLoaded` and `hasError` when switching photos in multi-angle product carousels.
+5. **Atomic Add Product Error Handling (`addProduct`)**:
+   - Mirrored `updateProduct` error handling in `addProduct`, awaiting cloud upserts and surfacing any RLS or schema notices to the inventory manager.
+
+

@@ -177,8 +177,13 @@ export default function ProductModal({
           setThumbnail(optimized.thumbnailDataUrl)
         }
 
-        // 2. Upload to Supabase Storage CDN if connected
-        if (supabaseConfig.isConnected && supabaseConfig.url) {
+        // 2. Upload to Supabase Storage CDN if credentials available
+        const currentSupabaseConfig = getSavedSupabaseConfig()
+        const hasCloudStorage = Boolean(
+          currentSupabaseConfig.url && currentSupabaseConfig.anonKey,
+        )
+
+        if (hasCloudStorage) {
           setUploadingToCloud(true)
           setStatusMessage(
             `☁️ [${i + 1}/${files.length}] Uploading "${file.name}" to Supabase Storage CDN...`,
@@ -187,11 +192,16 @@ export default function ProductModal({
             const { url } = await uploadImageToSupabase(
               optimized.file,
               file.name,
-              supabaseConfig,
+              currentSupabaseConfig,
             )
             newUrls.push(url)
           } catch (uploadErr) {
-            console.warn(uploadErr)
+            console.warn("Storage upload failed:", uploadErr)
+            const errDetail =
+              uploadErr instanceof Error
+                ? uploadErr.message
+                : "Storage upload failed"
+            setStatusMessage(`⚠️ [${file.name}] ${errDetail}. Using local preview.`)
             newUrls.push(optimized.previewUrl)
           }
         } else {
@@ -284,11 +294,18 @@ export default function ProductModal({
       const formattedBuy = formatCurrency(buyPrice)
       const formattedCurrent = formatCurrency(currentPrice)
 
+      // Clean and sanitize gallery URLs
+      const cleanGallery = galleryImages
+        .map((url) => (typeof url === "string" ? url.trim() : ""))
+        .filter(Boolean)
+
       // Ensure primary cover image is positioned first in images array
-      const remainingImages = galleryImages.filter(
+      const remainingImages = cleanGallery.filter(
         (url) => url !== primaryCover,
       )
-      const finalImagesList = [primaryCover, ...remainingImages]
+      const finalImagesList = primaryCover
+        ? [primaryCover, ...remainingImages]
+        : cleanGallery
 
       const productPayload = {
         ...(initialData ? { id: initialData.id } : {}),

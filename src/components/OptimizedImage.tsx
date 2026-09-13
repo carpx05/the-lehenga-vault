@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 
 interface OptimizedImageProps
   extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -19,6 +19,12 @@ export default function OptimizedImage({
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
+
+  // Reset loading state when image source changes
+  useEffect(() => {
+    setIsLoaded(false)
+    setHasError(false)
+  }, [src])
 
   // Fallback placeholder image
   const fallbackSrc =

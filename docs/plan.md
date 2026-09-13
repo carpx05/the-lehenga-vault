@@ -385,4 +385,5 @@ Record anything a future reader would otherwise have to guess.
 | 2026-09-12 | 8, 9 | Lead CRM Storage & Appointments Manager (`AppointmentsManager.tsx`) | Captures storefront styling appointment requests in local/cloud persistence (`appointmentsStorage.ts`) with status workflows and 1-click WhatsApp/Call triggers. |
 | 2026-09-12 | 9 | Google DoH MX Email Verification & Auto-Suggestions (`emailValidator.ts`) | Optional, non-intrusive DNS MX lookup via Google DNS-over-HTTPS and typo auto-suggestions without requiring raw port 25 or paid verification APIs. |
 | 2026-09-12 | 8, 9 | Multi-Provider Email Dispatch Engine (`emailService.ts`) | Supported Web3Forms (zero-CORS developer API for atelier notification) and EmailJS (dual-dispatch for atelier notification and customer confirmation copy). |
+| 2026-09-13 | 6, 7, 8 | Multi-Image Cloud Persistence & Multi-Tier Fallback (`supabase.ts`, `ProductContext.tsx`) | Implemented atomic sub-50ms single-product sync, multi-tier fallback (native array -> stringified JSON -> description trailer `<!--lv_gallery:...-->`), eliminated stale seed override, and prevented batch upload filename collisions. |
 

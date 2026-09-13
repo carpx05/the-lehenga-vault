@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   tag TEXT NOT NULL,
   available BOOLEAN DEFAULT true,
   img TEXT NOT NULL,
+  images TEXT[],
   thumbnail TEXT,
   description TEXT,
   sku TEXT,
@@ -133,6 +134,10 @@ CREATE TABLE IF NOT EXISTS public.products (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migration for existing tables:
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[];
+UPDATE public.products SET images = ARRAY[img] WHERE (images IS NULL OR array_length(images, 1) IS NULL) AND img IS NOT NULL;
 
 -- ==========================================================
 -- SECURE ROW LEVEL SECURITY (Zero Vulnerabilities):

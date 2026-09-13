@@ -9,6 +9,7 @@ import { Product } from "../types"
 import {
   getSavedSupabaseConfig,
   syncProductsToSupabase,
+  syncSingleProductToSupabase,
   fetchProductsFromSupabase,
   deleteProductFromSupabase,
 } from "../lib/supabase"
@@ -303,11 +304,13 @@ export const INITIAL_PRODUCTS: Product[] = [
 interface ProductContextType {
   products: Product[]
   isLoading: boolean
-  addProduct: (product: Omit<Product, "id">) => Promise<Product>
+  addProduct: (
+    product: Omit<Product, "id">,
+  ) => Promise<{ product: Product; success: boolean; error?: string }>
   updateProduct: (
     id: string | number,
     updates: Partial<Product>,
-  ) => Promise<void>
+  ) => Promise<{ success: boolean; error?: string }>
   deleteProduct: (id: string | number) => Promise<void>
   toggleAvailability: (id: string | number) => Promise<void>
   resetToDefault: () => void
@@ -350,9 +353,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
             const images =
               validImages.length > 0
                 ? validImages
-                : seedMatch?.images && seedMatch.images.length > 0
-                  ? seedMatch.images
-                  : [coverImg]
+                : coverImg
+                  ? [coverImg]
+                  : seedMatch?.images || []
 
             return {
               ...p,
@@ -387,13 +390,14 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   // Hydrate from IndexedDB and attempt background sync with Supabase
   useEffect(() => {
     let isMounted = true
+    let cloudHydrated = false
 
     // 1. Check IndexedDB for any catalogs saved beyond localStorage quota
     getCatalogFromIndexedDB().then((idbProducts) => {
-      if (isMounted && idbProducts && idbProducts.length > 0) {
+      // If cloud has already hydrated, do not downgrade with local IndexedDB
+      if (isMounted && !cloudHydrated && idbProducts && idbProducts.length > 0) {
         setProducts((current) => {
           return idbProducts.map((ip) => {
-            const curMatch = current.find((c) => String(c.id) === String(ip.id))
             const rawImgs = Array.isArray(ip.images) ? ip.images : []
             const validImgs = rawImgs.filter(
               (u: string) => typeof u === "string" && !u.startsWith("blob:"),
@@ -403,39 +407,34 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
               images:
                 validImgs.length > 0
                   ? validImgs
-                  : curMatch?.images && curMatch.images.length > 0
-                    ? curMatch.images
-                    : [ip.img],
+                  : ip.img
+                    ? [ip.img]
+                    : [],
             }
           })
         })
       }
     })
 
-    // 2. Attempt background sync with Supabase if configured
+    // 2. Background sync with Supabase cloud database (authoritative source of truth)
     const config = getSavedSupabaseConfig()
     if (config.url && config.anonKey) {
       fetchProductsFromSupabase(config).then((cloudProducts) => {
         if (isMounted && cloudProducts && cloudProducts.length > 0) {
+          cloudHydrated = true
           setProducts((currentProducts) => {
-            return cloudProducts.map((cloudItem) => {
-              const localMatch = currentProducts.find(
-                (lp) => String(lp.id) === String(cloudItem.id),
-              )
-              const hasCloudMultiple =
-                cloudItem.images && cloudItem.images.length > 1
-              const hasLocalMultiple =
-                localMatch?.images && localMatch.images.length > 1
-
-              let finalImages = cloudItem.images
-              if (!hasCloudMultiple && hasLocalMultiple && localMatch) {
-                finalImages = localMatch.images
-              }
-              return {
-                ...cloudItem,
-                images: finalImages || [cloudItem.img],
-              }
-            })
+            const cloudIds = new Set(cloudProducts.map((cp) => String(cp.id)))
+            // Preserve newly created local products that have not yet reached the cloud
+            const localPending = currentProducts.filter(
+              (lp) =>
+                !cloudIds.has(String(lp.id)) && String(lp.id).startsWith("lv-"),
+            )
+            const merged = [...cloudProducts, ...localPending]
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(merged))
+            } catch {}
+            saveCatalogToIndexedDB(merged).catch(() => {})
+            return merged
           })
         }
       })
@@ -447,7 +446,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const addProduct = useCallback(
-    async (newProductData: Omit<Product, "id">): Promise<Product> => {
+    async (
+      newProductData: Omit<Product, "id">,
+    ): Promise<{ product: Product; success: boolean; error?: string }> => {
       const newProduct: Product = {
         ...newProductData,
         id: `lv-${Date.now()}`,
@@ -457,34 +458,55 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
       setProducts((prev) => [newProduct, ...prev])
 
-      // Background sync to Supabase if credentials available
+      // Fast single-product background sync to Supabase if credentials available
       const config = getSavedSupabaseConfig()
       if (config.url && config.anonKey && config.autoSync) {
-        syncProductsToSupabase([newProduct, ...products], config).catch(
-          console.warn,
-        )
+        try {
+          const syncRes = await syncSingleProductToSupabase(newProduct, config)
+          return { product: newProduct, success: syncRes.success, error: syncRes.error }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Cloud sync failed"
+          return { product: newProduct, success: false, error: msg }
+        }
       }
 
-      return newProduct
+      return { product: newProduct, success: true }
     },
-    [products],
+    [],
   )
 
   const updateProduct = useCallback(
-    async (id: string | number, updates: Partial<Product>) => {
-      setProducts((prev) => {
-        const updated = prev.map((item) =>
-          String(item.id) === String(id)
-            ? { ...item, ...updates, updatedAt: new Date().toISOString() }
-            : item,
-        )
+    async (
+      id: string | number,
+      updates: Partial<Product>,
+    ): Promise<{ success: boolean; error?: string }> => {
+      let targetProduct: Product | null = null
 
-        const config = getSavedSupabaseConfig()
-        if (config.url && config.anonKey && config.autoSync) {
-          syncProductsToSupabase(updated, config).catch(console.warn)
-        }
-        return updated
+      setProducts((prev) => {
+        return prev.map((item) => {
+          if (String(item.id) === String(id)) {
+            targetProduct = {
+              ...item,
+              ...updates,
+              updatedAt: new Date().toISOString(),
+            }
+            return targetProduct
+          }
+          return item
+        })
       })
+
+      const config = getSavedSupabaseConfig()
+      if (config.url && config.anonKey && config.autoSync && targetProduct) {
+        try {
+          const res = await syncSingleProductToSupabase(targetProduct, config)
+          return res
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Sync failed"
+          return { success: false, error: msg }
+        }
+      }
+      return { success: true }
     },
     [],
   )
@@ -501,18 +523,21 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const toggleAvailability = useCallback(async (id: string | number) => {
+    let targetProduct: Product | null = null
     setProducts((prev) => {
-      const updated = prev.map((item) =>
-        String(item.id) === String(id)
-          ? { ...item, available: !item.available }
-          : item,
-      )
-      const config = getSavedSupabaseConfig()
-      if (config.url && config.anonKey && config.autoSync) {
-        syncProductsToSupabase(updated, config).catch(console.warn)
-      }
-      return updated
+      return prev.map((item) => {
+        if (String(item.id) === String(id)) {
+          targetProduct = { ...item, available: !item.available }
+          return targetProduct
+        }
+        return item
+      })
     })
+
+    const config = getSavedSupabaseConfig()
+    if (config.url && config.anonKey && config.autoSync && targetProduct) {
+      syncSingleProductToSupabase(targetProduct, config).catch(console.warn)
+    }
   }, [])
 
   const resetToDefault = useCallback(() => {
