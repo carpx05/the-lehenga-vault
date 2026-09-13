@@ -138,6 +138,7 @@ CREATE TABLE IF NOT EXISTS public.products (
 -- Migration for existing tables:
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[];
 UPDATE public.products SET images = ARRAY[img] WHERE (images IS NULL OR array_length(images, 1) IS NULL) AND img IS NOT NULL;
+NOTIFY pgrst, 'reload schema';
 
 -- ==========================================================
 -- SECURE ROW LEVEL SECURITY (Zero Vulnerabilities):

@@ -468,23 +468,28 @@ export async function syncSingleProductToSupabase(
       .from(activeTable)
       .upsert(formatted, { onConflict: "id" })
 
-    // Check table casing 'Products' vs 'products'
+    // Check table casing ONLY if the table itself was reported missing (never on column or schema cache errors)
     if (
       error &&
-      (error.code === "PGRST205" ||
-        error.code === "42P01" ||
-        error.message?.toLowerCase().includes("not find") ||
-        error.message?.toLowerCase().includes("does not exist"))
+      (error.message?.toLowerCase().includes("find the table") ||
+        error.message?.toLowerCase().includes("relation \"products\" does not exist"))
     ) {
-      activeTable = "Products"
       const resCap = await client
-        .from(activeTable)
+        .from("Products")
         .upsert(formatted, { onConflict: "id" })
-      error = resCap.error
+      if (!resCap.error) {
+        activeTable = "Products"
+        error = null
+      }
     }
 
-    // 2. If error is about images column type or presence
-    if (error && error.message?.toLowerCase().includes("images")) {
+    // 2. If error is about images column type, missing column, or PostgREST schema cache
+    if (
+      error &&
+      (error.message?.toLowerCase().includes("images") ||
+        error.message?.toLowerCase().includes("schema cache") ||
+        error.message?.toLowerCase().includes("column"))
+    ) {
       // 2a. Try stringified JSON for images (in case images is TEXT)
       const payloadStringified = {
         ...formatted,
@@ -498,7 +503,7 @@ export async function syncSingleProductToSupabase(
         return { success: true }
       }
 
-      // 2b. If column doesn't exist at all, omit images column from payload
+      // 2b. If column doesn't exist at all or PostgREST schema cache hasn't refreshed, omit images column
       // Note: formatProductForSupabase already embedded the <!--lv_gallery:...--> trailer into description!
       const { images: _omitted, ...payloadNoImages } = formatted
       const resNoImages = await client
@@ -564,23 +569,28 @@ export async function syncProductsToSupabase(
       .from(activeTable)
       .upsert(formattedList, { onConflict: "id" })
 
-    // Check table casing 'Products' vs 'products'
+    // Check table casing ONLY if the table itself was reported missing (never on column or schema cache errors)
     if (
       err1 &&
-      (err1.code === "PGRST205" ||
-        err1.code === "42P01" ||
-        err1.message?.toLowerCase().includes("not find") ||
-        err1.message?.toLowerCase().includes("does not exist"))
+      (err1.message?.toLowerCase().includes("find the table") ||
+        err1.message?.toLowerCase().includes("relation \"products\" does not exist"))
     ) {
-      activeTable = "Products"
       const resCap = await client
-        .from(activeTable)
+        .from("Products")
         .upsert(formattedList, { onConflict: "id" })
-      err1 = resCap.error
+      if (!resCap.error) {
+        activeTable = "Products"
+        err1 = null
+      }
     }
 
-    // If table complains about images column type or existence
-    if (err1 && err1.message?.toLowerCase().includes("images")) {
+    // If table complains about images column type, missing column, or PostgREST schema cache
+    if (
+      err1 &&
+      (err1.message?.toLowerCase().includes("images") ||
+        err1.message?.toLowerCase().includes("schema cache") ||
+        err1.message?.toLowerCase().includes("column"))
+    ) {
       // Try stringifying images array
       const listStringified = formattedList.map((item) => ({
         ...item,
@@ -594,7 +604,7 @@ export async function syncProductsToSupabase(
         return { success: true, count: products.length }
       }
 
-      // If column is completely missing, omit images column (description-trailer fallback active)
+      // If column is completely missing or cache not refreshed, omit images column (description-trailer fallback active)
       const listNoImages = formattedList.map(({ images: _imgs, ...rest }) => rest)
       const resNoImages = await client
         .from(activeTable)
@@ -650,8 +660,8 @@ export async function deleteProductFromSupabase(
 
     if (
       error &&
-      (error.code === "PGRST205" ||
-        error.message?.toLowerCase().includes("not find"))
+      (error.message?.toLowerCase().includes("find the table") ||
+        error.message?.toLowerCase().includes("relation \"products\" does not exist"))
     ) {
       const capRes = await client.from("Products").delete().eq("id", String(id))
       error = capRes.error
@@ -685,20 +695,17 @@ export async function fetchProductsFromSupabase(
 
     if (
       error &&
-      (error.code === "PGRST205" ||
-        error.message?.toLowerCase().includes("not find") ||
-        error.message?.toLowerCase().includes("does not exist"))
+      (error.message?.toLowerCase().includes("find the table") ||
+        error.message?.toLowerCase().includes("relation \"products\" does not exist"))
     ) {
-      activeTable = "Products"
       const capRes = await client
-        .from(activeTable)
+        .from("Products")
         .select("*")
         .order("created_at", { ascending: false })
       if (!capRes.error && capRes.data) {
+        activeTable = "Products"
         data = capRes.data
         error = null
-      } else {
-        error = capRes.error
       }
     }
 
