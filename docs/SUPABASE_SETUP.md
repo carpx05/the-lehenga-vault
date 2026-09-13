@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS public.products (
 
 -- Migration for existing tables:
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[];
+NOTIFY pgrst, 'reload schema';
 
 -- ==========================================================
 -- SECURE ROW LEVEL SECURITY (Zero Vulnerabilities):
@@ -151,6 +152,7 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[];
 UPDATE public.products SET buy_price = price WHERE buy_price = '₹0' AND price IS NOT NULL;
 UPDATE public.products SET current_price = price WHERE current_price = '₹0' AND price IS NOT NULL;
 UPDATE public.products SET images = ARRAY[img] WHERE images IS NULL AND img IS NOT NULL;
+NOTIFY pgrst, 'reload schema';
 
 -- --------------------------------------------------------------------
 -- 5. OPTIONAL: Styling Appointments CRM Cloud Table

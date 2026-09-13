@@ -330,5 +330,11 @@
    - Added `useEffect([src])` to reset `isLoaded` and `hasError` when switching photos in multi-angle product carousels.
 5. **Atomic Add Product Error Handling (`addProduct`)**:
    - Mirrored `updateProduct` error handling in `addProduct`, awaiting cloud upserts and surfacing any RLS or schema notices to the inventory manager.
+6. **Strict Table vs. Column Resolution & PostgREST Schema Cache Handling (`supabase.ts`)**:
+   - Fixed bug where PostgREST schema cache notice (`Could not find 'images' column in schema cache`) triggered a table casing fallback (`activeTable = 'Products'`), causing subsequent retries to fail with `could not find table public.Products`.
+   - Constrained table casing checks strictly to explicit table-not-found errors where the alternative actually succeeds.
+   - Expanded column fallback to intercept all `schema cache` errors and seamlessly route multiple images into the description metadata trailer (`<!--lv_gallery:...-->`).
+   - Documented and automated `NOTIFY pgrst, 'reload schema';` across SQL setups.
+
 
 
