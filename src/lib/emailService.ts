@@ -55,7 +55,7 @@ export interface SendAppointmentEmailParams {
 
 export async function sendAppointmentEmail(
   data: SendAppointmentEmailParams,
-): Promise<{ success: boolean message: string customerEmailSent?: boolean }> {
+): Promise<{ success: boolean; message: string; customerEmailSent?: boolean }> {
   const config = getEmailConfig()
 
   if (!config.key) {

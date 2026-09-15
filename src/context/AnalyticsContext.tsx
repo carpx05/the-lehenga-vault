@@ -20,14 +20,14 @@ interface AnalyticsContextType {
   uniqueVisitors: number
   liveVisitors: number
   dailyStats: DayAnalytics[]
-  topPages: { path: string label: string views: number percentage: number }[]
+  topPages: { path: string; label: string; views: number; percentage: number }[]
   deviceStats: {
     device: string
     count: number
     percentage: number
     color: string
   }[]
-  referrerStats: { source: string count: number percentage: number }[]
+  referrerStats: { source: string; count: number; percentage: number }[]
   trackPageView: (pathname: string, title?: string) => void
   clearAnalytics: () => void
   refreshFromCloud: () => Promise<void>
@@ -216,7 +216,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   })
 
   // Real Top pages breakdown
-  const pageMap: Record<string, { label: string count: number }> = {}
+  const pageMap: Record<string, { label: string; count: number }> = {}
   const routeLabels: Record<string, string> = {
     "/": "Home Showcase",
     "/collections": "Our Collections",

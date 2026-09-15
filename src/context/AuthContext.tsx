@@ -21,12 +21,12 @@ interface AuthContextType {
   login: (
     email: string,
     password: string,
-  ) => Promise<{ success: boolean error?: string }>
+  ) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   updateCredentials: (
     newUsername: string,
     newPassword: string,
-  ) => Promise<{ success: boolean error?: string }>
+  ) => Promise<{ success: boolean; error?: string }>
   currentUsername: string
   isSuperAdmin: boolean
 }
