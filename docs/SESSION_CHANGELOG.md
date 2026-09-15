@@ -336,5 +336,41 @@
    - Expanded column fallback to intercept all `schema cache` errors and seamlessly route multiple images into the description metadata trailer (`<!--lv_gallery:...-->`).
    - Documented and automated `NOTIFY pgrst, 'reload schema';` across SQL setups.
 
+---
 
+# Session Changelog & Engineering Record — Part 8
 
+> **Date:** September 15, 2026  
+> **Topic:** Schema Cache Column Alignment (`price` vs `buy_price`/`current_price`) & Self-Healing Multi-Column Upsert Loop
+
+---
+
+## 1. Summary of Changes
+
+| Area | What Was Built | Key Files |
+| :--- | :--- | :--- |
+| **Aligned Cloud Payload Format** | Removed extraneous `price: current` from `formatProductForSupabase`. Upsert payload now matches the actual database schema (`buy_price`, `current_price`, `rent`, `images`, etc.) with zero redundant keys. | `src/lib/supabase.ts` |
+| **Self-Healing Adaptive Upsert Engine** | Replaced rigid fallbacks in `syncSingleProductToSupabase` and `syncProductsToSupabase` with an adaptive 5-pass retry loop. PostgREST missing-column notices (`Could not find the 'xyz' column...`) are dynamically parsed to strip missing columns or gracefully substitute legacy `price` when running on older schemas. | `src/lib/supabase.ts` |
+| **Strict TypeScript Type Declarations** | Cleaned up inline object type definitions across analytics, auth, email, and supabase services, fixing missing semicolons/delimiters. | `src/context/AnalyticsContext.tsx`<br>`src/context/AuthContext.tsx`<br>`src/lib/emailService.ts`<br>`src/lib/supabase.ts` |
+
+---
+
+## 2. Root Cause Analysis: "Could not find the 'price' column of 'products' in the schema cache"
+
+1. **Schema Evolution Discrepancy**:
+   - The atelier database schema contains `buy_price`, `current_price`, and `rent` (`buy_price text NOT NULL, current_price text NOT NULL, rent text NOT NULL`), but intentionally contains no column named `price`.
+2. **Redundant Field Injection**:
+   - `formatProductForSupabase` in `src/lib/supabase.ts` was injecting `price: current` alongside `buy_price` and `current_price` in the upsert payload object.
+3. **PostgREST Schema Cache Enforcement**:
+   - Supabase PostgREST requires that every property key in a JSON payload maps directly to a valid column on the target table. Any unmapped key triggers HTTP 400: `Could not find the '<key>' column of '<table_name>' in the schema cache`.
+4. **Cascading Retry Failure**:
+   - When PostgREST returned this schema cache error, earlier retry passes (such as stringifying `images` or omitting `images`) still carried `price: current`, resulting in persistent failure and the inventory toast notification: `Updated "Gul-e-Neel" locally (Cloud notice: Could not find the 'price' column of 'products' in the schema cache)`.
+
+---
+
+## 3. Resolution & Resilience Guarantee
+
+1. **Clean Payload Generation**: `formatProductForSupabase` only emits properties that represent genuine schema columns.
+2. **Dynamic Schema Cache Interceptor**: If any future table variant lacks a column (`price`, `thumbnail`, `images`, `sku`), regex `Could not find the '([^']+)' column` extracts the column name and removes it for an immediate automated retry.
+3. **Legacy Table Compatibility**: If a legacy table possesses only `price` and lacks `buy_price` or `current_price`, the retry loop strips both and automatically substitutes `price: fallbackPrice`.
+4. **Verified Clean Build**: Both `pnpm exec tsc --noEmit` and `pnpm run build` pass with 0 errors.

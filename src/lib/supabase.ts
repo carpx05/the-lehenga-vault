@@ -382,7 +382,6 @@ export function formatProductForSupabase(p: Product): Record<string, any> {
     designer: p.designer,
     buy_price: buy,
     current_price: current,
-    price: current,
     rent: p.rent || "₹0",
     tag: p.tag || "Bridal",
     available: p.available ?? true,
@@ -406,7 +405,7 @@ export async function uploadImageToSupabase(
   file: File | Blob,
   fileName: string,
   config?: SupabaseConfig,
-): Promise<{ url: string error?: string }> {
+): Promise<{ url: string; error?: string }> {
   const currentConfig = config || getSavedSupabaseConfig()
   const client = getSupabaseClient(currentConfig)
 
@@ -462,82 +461,97 @@ export async function syncSingleProductToSupabase(
   try {
     const formatted = formatProductForSupabase(product)
     let activeTable = "products"
+    let currentPayload: Record<string, any> = { ...formatted }
 
-    // 1. Try upsert with native images array
-    let { error } = await client
-      .from(activeTable)
-      .upsert(formatted, { onConflict: "id" })
+    // Adaptive upsert loop: handles table casing, missing columns (e.g. price, images, thumbnail), and JSON stringification
+    for (let attempt = 0; attempt < 5; attempt++) {
+      let { error } = await client
+        .from(activeTable)
+        .upsert(currentPayload, { onConflict: "id" })
 
-    // Check table casing ONLY if the table itself was reported missing (never on column or schema cache errors)
-    if (
-      error &&
-      (error.message?.toLowerCase().includes("find the table") ||
-        error.message?.toLowerCase().includes("relation \"products\" does not exist"))
-    ) {
-      const resCap = await client
-        .from("Products")
-        .upsert(formatted, { onConflict: "id" })
-      if (!resCap.error) {
+      if (!error) {
+        return { success: true }
+      }
+
+      // 1. Check table casing ONLY if the table itself was reported missing
+      if (
+        attempt === 0 &&
+        (error.message?.toLowerCase().includes("find the table") ||
+          error.message?.toLowerCase().includes("relation \"products\" does not exist") ||
+          error.code === "PGRST205" ||
+          error.code === "42P01")
+      ) {
         activeTable = "Products"
-        error = null
-      }
-    }
-
-    // 2. If error is about images column type, missing column, or PostgREST schema cache
-    if (
-      error &&
-      (error.message?.toLowerCase().includes("images") ||
-        error.message?.toLowerCase().includes("schema cache") ||
-        error.message?.toLowerCase().includes("column"))
-    ) {
-      // 2a. Try stringified JSON for images (in case images is TEXT)
-      const payloadStringified = {
-        ...formatted,
-        images: JSON.stringify(formatted.images),
-      }
-      const resJson = await client
-        .from(activeTable)
-        .upsert(payloadStringified, { onConflict: "id" })
-
-      if (!resJson.error) {
-        return { success: true }
+        const resCap = await client
+          .from(activeTable)
+          .upsert(currentPayload, { onConflict: "id" })
+        if (!resCap.error) {
+          return { success: true }
+        }
+        error = resCap.error
       }
 
-      // 2b. If column doesn't exist at all or PostgREST schema cache hasn't refreshed, omit images column
-      // Note: formatProductForSupabase already embedded the <!--lv_gallery:...--> trailer into description!
-      const { images: _omitted, ...payloadNoImages } = formatted
-      const resNoImages = await client
-        .from(activeTable)
-        .upsert(payloadNoImages, { onConflict: "id" })
+      const errMsg = error.message?.toLowerCase() || ""
 
-      if (!resNoImages.error) {
-        return { success: true }
+      // 2. Missing column in PostgREST schema cache:
+      // Examples:
+      // "Could not find the 'price' column of 'products' in the schema cache"
+      // "column "price" of relation "products" does not exist"
+      const colMatch =
+        error.message?.match(/Could not find the '([^']+)' column/i) ||
+        error.message?.match(/column "([^"]+)" of relation/i)
+
+      if (colMatch && (colMatch[1] || colMatch[2])) {
+        const missingCol = (colMatch[1] || colMatch[2]).trim()
+        if (missingCol in currentPayload) {
+          // If the DB has legacy 'price' column instead of buy_price / current_price:
+          if (missingCol === "buy_price" || missingCol === "current_price") {
+            const fallbackPrice =
+              currentPayload.current_price || currentPayload.buy_price || product.price || "₹0"
+            delete currentPayload.buy_price
+            delete currentPayload.current_price
+            currentPayload.price = fallbackPrice
+          } else {
+            delete currentPayload[missingCol]
+          }
+          continue // Retry without the missing column
+        }
       }
-      error = resNoImages.error
-    }
 
-    // 3. Fallback if buy_price or current_price columns don't exist
-    if (
-      error &&
-      (error.message?.toLowerCase().includes("buy_price") ||
-        error.message?.toLowerCase().includes("current_price"))
-    ) {
-      const { buy_price: _b, current_price: _c, ...fallbackPayload } = formatted
-      const resPrice = await client
-        .from(activeTable)
-        .upsert(fallbackPayload, { onConflict: "id" })
-      if (!resPrice.error) {
-        return { success: true }
+      // 3. If images column type is text rather than text[] or array
+      if (
+        errMsg.includes("images") &&
+        Array.isArray(currentPayload.images)
+      ) {
+        currentPayload.images = JSON.stringify(currentPayload.images)
+        continue // Retry with JSON-stringified images
       }
-      error = resPrice.error
-    }
 
-    if (error) {
+      // 4. If images column causes any other error, omit it (description trailer already preserves gallery)
+      if (errMsg.includes("images") && "images" in currentPayload) {
+        delete currentPayload.images
+        continue // Retry without images column
+      }
+
+      // 5. If buy_price / current_price columns don't exist
+      if (
+        (errMsg.includes("buy_price") || errMsg.includes("current_price")) &&
+        ("buy_price" in currentPayload || "current_price" in currentPayload)
+      ) {
+        const fallbackPrice =
+          currentPayload.current_price || currentPayload.buy_price || product.price || "₹0"
+        delete currentPayload.buy_price
+        delete currentPayload.current_price
+        currentPayload.price = fallbackPrice
+        continue
+      }
+
+      // If we could not adapt to this error, return failure
       console.warn("Supabase single product sync error:", error.message)
       return { success: false, error: error.message }
     }
 
-    return { success: true }
+    return { success: false, error: "Exceeded max adaptive retry attempts" }
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Database sync error"
     console.warn("Supabase single product sync exception:", msg)
@@ -564,80 +578,98 @@ export async function syncProductsToSupabase(
   try {
     const formattedList = products.map(formatProductForSupabase)
     let activeTable = "products"
+    let currentPayloadList: Record<string, any>[] = formattedList.map((item) => ({ ...item }))
 
-    let { error: err1 } = await client
-      .from(activeTable)
-      .upsert(formattedList, { onConflict: "id" })
+    for (let attempt = 0; attempt < 5; attempt++) {
+      let { error: err1 } = await client
+        .from(activeTable)
+        .upsert(currentPayloadList, { onConflict: "id" })
 
-    // Check table casing ONLY if the table itself was reported missing (never on column or schema cache errors)
-    if (
-      err1 &&
-      (err1.message?.toLowerCase().includes("find the table") ||
-        err1.message?.toLowerCase().includes("relation \"products\" does not exist"))
-    ) {
-      const resCap = await client
-        .from("Products")
-        .upsert(formattedList, { onConflict: "id" })
-      if (!resCap.error) {
+      if (!err1) {
+        return { success: true, count: products.length }
+      }
+
+      // 1. Check table casing ONLY if the table itself was reported missing
+      if (
+        attempt === 0 &&
+        (err1.message?.toLowerCase().includes("find the table") ||
+          err1.message?.toLowerCase().includes("relation \"products\" does not exist") ||
+          err1.code === "PGRST205" ||
+          err1.code === "42P01")
+      ) {
         activeTable = "Products"
-        err1 = null
-      }
-    }
-
-    // If table complains about images column type, missing column, or PostgREST schema cache
-    if (
-      err1 &&
-      (err1.message?.toLowerCase().includes("images") ||
-        err1.message?.toLowerCase().includes("schema cache") ||
-        err1.message?.toLowerCase().includes("column"))
-    ) {
-      // Try stringifying images array
-      const listStringified = formattedList.map((item) => ({
-        ...item,
-        images: JSON.stringify(item.images),
-      }))
-      const resJson = await client
-        .from(activeTable)
-        .upsert(listStringified, { onConflict: "id" })
-
-      if (!resJson.error) {
-        return { success: true, count: products.length }
+        const resCap = await client
+          .from(activeTable)
+          .upsert(currentPayloadList, { onConflict: "id" })
+        if (!resCap.error) {
+          return { success: true, count: products.length }
+        }
+        err1 = resCap.error
       }
 
-      // If column is completely missing or cache not refreshed, omit images column (description-trailer fallback active)
-      const listNoImages = formattedList.map(({ images: _imgs, ...rest }) => rest)
-      const resNoImages = await client
-        .from(activeTable)
-        .upsert(listNoImages, { onConflict: "id" })
+      const errMsg = err1.message?.toLowerCase() || ""
 
-      if (!resNoImages.error) {
-        return { success: true, count: products.length }
+      // 2. Missing column in PostgREST schema cache
+      const colMatch =
+        err1.message?.match(/Could not find the '([^']+)' column/i) ||
+        err1.message?.match(/column "([^"]+)" of relation/i)
+
+      if (colMatch && (colMatch[1] || colMatch[2])) {
+        const missingCol = (colMatch[1] || colMatch[2]).trim()
+        if (currentPayloadList.some((item) => missingCol in item)) {
+          if (missingCol === "buy_price" || missingCol === "current_price") {
+            currentPayloadList = currentPayloadList.map((item) => {
+              const fallback = item.current_price || item.buy_price || item.price || "₹0"
+              const { buy_price: _b, current_price: _c, ...rest } = item
+              return { ...rest, price: fallback }
+            })
+          } else {
+            currentPayloadList = currentPayloadList.map((item) => {
+              const copy = { ...item }
+              delete copy[missingCol]
+              return copy
+            })
+          }
+          continue
+        }
       }
-      err1 = resNoImages.error
-    }
 
-    if (!err1) {
-      return { success: true, count: products.length }
-    }
-
-    // Fallback if table doesn't have buy_price / current_price columns
-    if (
-      err1.message?.toLowerCase().includes("buy_price") ||
-      err1.message?.toLowerCase().includes("current_price")
-    ) {
-      const listLegacy = formattedList.map(({ buy_price: _b, current_price: _c, ...rest }) => rest)
-      const { error: err2 } = await client
-        .from(activeTable)
-        .upsert(listLegacy, { onConflict: "id" })
-
-      if (!err2) {
-        return { success: true, count: products.length }
+      // 3. Images column type text vs text[]
+      if (
+        errMsg.includes("images") &&
+        currentPayloadList.some((item) => Array.isArray(item.images))
+      ) {
+        currentPayloadList = currentPayloadList.map((item) => ({
+          ...item,
+          images: JSON.stringify(item.images),
+        }))
+        continue
       }
-      return { success: false, count: 0, error: err2.message }
+
+      // 4. Images column missing / error
+      if (errMsg.includes("images") && currentPayloadList.some((item) => "images" in item)) {
+        currentPayloadList = currentPayloadList.map(({ images: _imgs, ...rest }) => rest)
+        continue
+      }
+
+      // 5. buy_price / current_price missing fallback to price
+      if (
+        (errMsg.includes("buy_price") || errMsg.includes("current_price")) &&
+        currentPayloadList.some((item) => "buy_price" in item || "current_price" in item)
+      ) {
+        currentPayloadList = currentPayloadList.map((item) => {
+          const fallback = item.current_price || item.buy_price || item.price || "₹0"
+          const { buy_price: _b, current_price: _c, ...rest } = item
+          return { ...rest, price: fallback }
+        })
+        continue
+      }
+
+      console.warn("Supabase products sync error:", err1.message)
+      return { success: false, count: 0, error: err1.message }
     }
 
-    console.warn("Supabase products sync error:", err1.message)
-    return { success: false, count: 0, error: err1.message }
+    return { success: false, count: 0, error: "Exceeded max adaptive retry attempts" }
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Database sync error"
     console.warn("Supabase products sync exception:", msg)
