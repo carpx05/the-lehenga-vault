@@ -53,7 +53,9 @@ export default function InventoryManager() {
     return products.filter((p) => {
       const matchSearch =
         p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.designer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.designer
+          ? p.designer.toLowerCase().includes(searchQuery.toLowerCase())
+          : false) ||
         (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
 
       const matchTag = selectedTag === "All" || p.tag === selectedTag
@@ -71,7 +73,9 @@ export default function InventoryManager() {
   const totalCount = products.length
   const availableCount = products.filter((p) => p.available).length
   const rentedCount = totalCount - availableCount
-  const uniqueDesigners = new Set(products.map((p) => p.designer)).size
+  const uniqueDesigners = new Set(
+    products.map((p) => p.designer).filter(Boolean),
+  ).size
 
   const handleOpenAddModal = () => {
     setEditingProduct(null)
@@ -347,7 +351,9 @@ export default function InventoryManager() {
 
                   {/* Designer */}
                   <td className="py-3 px-4 font-medium text-[#2D2418]">
-                    {piece.designer}
+                    {piece.designer || (
+                      <span className="text-neutral-400 font-normal">—</span>
+                    )}
                   </td>
 
                   {/* Tag */}
@@ -391,7 +397,11 @@ export default function InventoryManager() {
 
                   {/* Rent Price */}
                   <td className="py-3 px-4 font-serif text-sm font-medium text-[#8B6A3E]">
-                    {piece.rent}
+                    {piece.rent || (
+                      <span className="text-neutral-400 font-normal font-sans">
+                        —
+                      </span>
+                    )}
                   </td>
 
                   {/* Availability Toggle */}
@@ -489,9 +499,11 @@ export default function InventoryManager() {
                   <h4 className="font-serif text-base font-semibold text-[#2D2418]">
                     {piece.title}
                   </h4>
-                  <p className="text-xs text-[#8B6A3E] mt-0.5">
-                    {piece.designer}
-                  </p>
+                  {piece.designer ? (
+                    <p className="text-xs text-[#8B6A3E] mt-0.5">
+                      {piece.designer}
+                    </p>
+                  ) : null}
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#EDE3CC]">
                     <div>
                       <p className="text-[10px] uppercase text-[#8B6A3E]">
@@ -528,7 +540,7 @@ export default function InventoryManager() {
                         Rent
                       </p>
                       <p className="font-serif text-sm font-semibold text-[#8B6A3E]">
-                        {piece.rent}
+                        {piece.rent || "—"}
                       </p>
                     </div>
                   </div>

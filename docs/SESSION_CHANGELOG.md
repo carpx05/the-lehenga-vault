@@ -374,3 +374,37 @@
 2. **Dynamic Schema Cache Interceptor**: If any future table variant lacks a column (`price`, `thumbnail`, `images`, `sku`), regex `Could not find the '([^']+)' column` extracts the column name and removes it for an immediate automated retry.
 3. **Legacy Table Compatibility**: If a legacy table possesses only `price` and lacks `buy_price` or `current_price`, the retry loop strips both and automatically substitutes `price: fallbackPrice`.
 4. **Verified Clean Build**: Both `pnpm exec tsc --noEmit` and `pnpm run build` pass with 0 errors.
+
+---
+
+# Session Changelog & Engineering Record — Part 9
+
+> **Date:** September 28, 2026  
+> **Topic:** Optional Designer & Rent Fields with Public Visibility Concealment
+
+---
+
+## 1. Summary of Changes
+
+| Area | What Was Built | Key Files |
+| :--- | :--- | :--- |
+| **Optional Data Types** | Made `designer?: string` and `rent?: string` optional on the `Product` interface. | `src/types/index.ts` |
+| **Admin Product Modal** | Updated Designer Label and Rental Price to be optional fields with `-- No Designer Specified --` placeholder, removing `required` validations and eliminating hardcoded defaults. | `src/components/admin/ProductModal.tsx` |
+| **Admin Inventory Resilience** | Made search filtering, stats (`uniqueDesigners`), and inventory table/card displays safely handle optional or empty designer and rent values with elegant fallback dashes (`—`). | `src/components/admin/InventoryManager.tsx` |
+| **Customer Storefront Concealment** | Completely removed designer label and rental price displays from Collections cards, presenting a clean, unified single-price luxury format and a direct 1-click WhatsApp enquiry button. | `src/pages/Collections.tsx` |
+| **Product Detail Modal Concealment** | Removed designer label from eyebrow, replaced dual rent vs. buy pricing block with a clean purchase price view, and removed the dual "Enquire to Rent" action button. | `src/components/ProductDetailModal.tsx` |
+| **WhatsApp Enquiry Cleanup** | Removed designer and rental price lines from generated WhatsApp inquiry URLs across all intents. | `src/lib/whatsapp.ts` |
+| **Supabase Cloud Schema & Docs** | Updated PostgreSQL schema to make `designer` and `rent` nullable (`TEXT` instead of `TEXT NOT NULL`) and provided migration commands (`ALTER COLUMN DROP NOT NULL`). | `src/lib/supabase.ts`<br>`src/components/admin/SupabaseSettings.tsx`<br>`docs/SUPABASE_SETUP.md`<br>`docs/ADMIN_GUIDE.md`<br>`docs/plan.md` |
+
+---
+
+## 2. Architectural Decisions & Rationale
+
+1. **Brand Positioning & Clean Luxury UX**:
+   - The boutique requested that designer labels and rental price figures remain optional for internal inventory tracking in `/admin`, but be concealed from all customer-facing storefront touchpoints (product cards, modals, and WhatsApp enquiries).
+   - This provides a focused, high-end bridal catalog experience without confusing split rental vs. purchase pricing on public views.
+2. **Defensive Data Handling & Zero-Crash Guarantee**:
+   - `InventoryManager.tsx` and `supabase.ts` were hardened so that undefined or empty `designer` and `rent` fields do not trigger runtime `TypeError` (`p.designer.toLowerCase()`) or enforce `"₹0"` defaults.
+3. **Database Schema Continuity**:
+   - `ALTER TABLE public.products ALTER COLUMN designer DROP NOT NULL;` and `ALTER TABLE public.products ALTER COLUMN rent DROP NOT NULL;` were added to guarantee compatibility with existing Supabase databases without schema migration issues.
+

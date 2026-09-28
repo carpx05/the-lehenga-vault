@@ -301,16 +301,25 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
 ]
 
+export interface AddProductResult {
+  product: Product
+  success: boolean
+  error?: string
+}
+
+export interface UpdateProductResult {
+  success: boolean
+  error?: string
+}
+
 interface ProductContextType {
   products: Product[]
   isLoading: boolean
-  addProduct: (
-    product: Omit<Product, "id">,
-  ) => Promise<{ product: Product; success: boolean; error?: string }>
+  addProduct: (product: Omit<Product, "id">) => Promise<AddProductResult>
   updateProduct: (
     id: string | number,
     updates: Partial<Product>,
-  ) => Promise<{ success: boolean; error?: string }>
+  ) => Promise<UpdateProductResult>
   deleteProduct: (id: string | number) => Promise<void>
   toggleAvailability: (id: string | number) => Promise<void>
   resetToDefault: () => void
@@ -395,7 +404,12 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     // 1. Check IndexedDB for any catalogs saved beyond localStorage quota
     getCatalogFromIndexedDB().then((idbProducts) => {
       // If cloud has already hydrated, do not downgrade with local IndexedDB
-      if (isMounted && !cloudHydrated && idbProducts && idbProducts.length > 0) {
+      if (
+        isMounted &&
+        !cloudHydrated &&
+        idbProducts &&
+        idbProducts.length > 0
+      ) {
         setProducts((current) => {
           return idbProducts.map((ip) => {
             const rawImgs = Array.isArray(ip.images) ? ip.images : []
@@ -404,12 +418,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
             )
             return {
               ...ip,
-              images:
-                validImgs.length > 0
-                  ? validImgs
-                  : ip.img
-                    ? [ip.img]
-                    : [],
+              images: validImgs.length > 0 ? validImgs : ip.img ? [ip.img] : [],
             }
           })
         })
@@ -446,9 +455,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const addProduct = useCallback(
-    async (
-      newProductData: Omit<Product, "id">,
-    ): Promise<{ product: Product; success: boolean; error?: string }> => {
+    async (newProductData: Omit<Product, "id">): Promise<AddProductResult> => {
       const newProduct: Product = {
         ...newProductData,
         id: `lv-${Date.now()}`,
@@ -463,7 +470,11 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       if (config.url && config.anonKey && config.autoSync) {
         try {
           const syncRes = await syncSingleProductToSupabase(newProduct, config)
-          return { product: newProduct, success: syncRes.success, error: syncRes.error }
+          return {
+            product: newProduct,
+            success: syncRes.success,
+            error: syncRes.error,
+          }
         } catch (err) {
           const msg = err instanceof Error ? err.message : "Cloud sync failed"
           return { product: newProduct, success: false, error: msg }
@@ -479,7 +490,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     async (
       id: string | number,
       updates: Partial<Product>,
-    ): Promise<{ success: boolean; error?: string }> => {
+    ): Promise<UpdateProductResult> => {
       let targetProduct: Product | null = null
 
       setProducts((prev) => {

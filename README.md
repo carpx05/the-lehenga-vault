@@ -51,8 +51,9 @@ Instead of generic e-commerce carts, high-ticket couture purchases and bookings 
 - **Fallback Compatibility**: Gracefully falls back to legacy single `price` field if newer fields are not provided.
 
 ### 3. 💬 Custom WhatsApp Enquiry Funnel (`src/lib/whatsapp.ts`)
-- **Intent-Driven Links**: Generates bespoke WhatsApp URLs based on whether the customer chooses "Enquire to Buy", "Enquire to Rent", or "Book / Enquire".
-- **Structured Message Format**: Pre-fills SKU, piece title, designer label, current pricing, and customer intent directly into the chat prompt.
+- **Direct 1-Click Action**: Generates bespoke WhatsApp URLs directly from product cards and detail dialogues.
+- **Structured Message Format**: Pre-fills SKU, piece title, collection tag, and effective pricing directly into the customer's chat prompt, eliminating friction.
+- **Optional Internal Attributes**: Designer labels and rental pricing are supported as optional internal inventory attributes, while customer-facing views maintain a clean, focused single-price luxury experience.
 
 ### 4. 🔒 Protected Staff & Owner Admin Portal (`/admin`)
 - **Role-Based Access Control (RBAC)**:
