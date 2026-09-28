@@ -15,18 +15,20 @@ export interface AdminUser {
   loginTime: string
 }
 
+export interface AuthResult {
+  success: boolean
+  error?: string
+}
+
 interface AuthContextType {
   isAuthenticated: boolean
   user: AdminUser | null
-  login: (
-    email: string,
-    password: string,
-  ) => Promise<{ success: boolean; error?: string }>
+  login: (email: string, password: string) => Promise<AuthResult>
   logout: () => void
   updateCredentials: (
     newUsername: string,
     newPassword: string,
-  ) => Promise<{ success: boolean; error?: string }>
+  ) => Promise<AuthResult>
   currentUsername: string
   isSuperAdmin: boolean
 }

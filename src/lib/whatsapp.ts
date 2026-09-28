@@ -36,7 +36,6 @@ export function buildWhatsAppEnquiryUrl(
       "I would like to join the waitlist / enquire for when this piece is next available:",
     )
     lines.push(`- *Piece:* ${piece.title}`)
-    if (piece.designer) lines.push(`- *Designer:* ${piece.designer}`)
     if (piece.tag) lines.push(`- *Collection:* ${piece.tag}`)
     if (piece.sku) lines.push(`- *SKU:* ${piece.sku}`)
     lines.push("")
@@ -47,13 +46,9 @@ export function buildWhatsAppEnquiryUrl(
   } else if (intent === "rent") {
     lines.push("Hello The Lehenga Vault!")
     lines.push("")
-    lines.push(
-      "I would like to enquire about *RENTING* this piece from your collection:",
-    )
+    lines.push("I would like to enquire about this piece from your collection:")
     lines.push(`- *Piece:* ${piece.title}`)
-    if (piece.designer) lines.push(`- *Designer:* ${piece.designer}`)
     if (piece.tag) lines.push(`- *Collection:* ${piece.tag}`)
-    if (piece.rent) lines.push(`- *Rental Price:* ${piece.rent}`)
     if (piece.sku) lines.push(`- *SKU:* ${piece.sku}`)
     lines.push("")
     lines.push(
@@ -67,9 +62,8 @@ export function buildWhatsAppEnquiryUrl(
       "I would like to enquire about *PURCHASING* this piece from your collection:",
     )
     lines.push(`- *Piece:* ${piece.title}`)
-    if (piece.designer) lines.push(`- *Designer:* ${piece.designer}`)
     if (piece.tag) lines.push(`- *Collection:* ${piece.tag}`)
-    if (priceDisplay) lines.push(`- *Purchase Price:* ${priceDisplay}`)
+    if (priceDisplay) lines.push(`- *Price:* ${priceDisplay}`)
     if (piece.sku) lines.push(`- *SKU:* ${piece.sku}`)
     lines.push("")
     lines.push(
@@ -84,10 +78,8 @@ export function buildWhatsAppEnquiryUrl(
       "I would like to book a private trial / enquire about this piece from your collection:",
     )
     lines.push(`- *Piece:* ${piece.title}`)
-    if (piece.designer) lines.push(`- *Designer:* ${piece.designer}`)
     if (piece.tag) lines.push(`- *Collection:* ${piece.tag}`)
-    if (priceDisplay) lines.push(`- *Buy Price:* ${priceDisplay}`)
-    if (piece.rent) lines.push(`- *Rental:* ${piece.rent}`)
+    if (priceDisplay) lines.push(`- *Price:* ${priceDisplay}`)
     if (piece.sku) lines.push(`- *SKU:* ${piece.sku}`)
     lines.push("")
     lines.push(

@@ -186,7 +186,9 @@ export async function testSupabaseConnection(
 
     if (tableFound) {
       if (imagesColFound) {
-        statusParts.push(`Database table '${activeTable}' connected with native 'images' gallery column`)
+        statusParts.push(
+          `Database table '${activeTable}' connected with native 'images' gallery column`,
+        )
       } else {
         statusParts.push(
           `Database table '${activeTable}' connected (Note: 'images' column not detected in DB table yet; automatic description-trailer fallback is active, or run migration in SQL Editor for native column)`,
@@ -225,7 +227,10 @@ export async function testSupabaseConnection(
  * Handles Postgres TEXT[] arrays, JSONB arrays, stringified JSON arrays ('["..."]'),
  * Postgres array string literals ('{"..."}'), and comma-separated URL lists.
  */
-export function parseImages(rawImages: unknown, fallbackImg?: string): string[] {
+export function parseImages(
+  rawImages: unknown,
+  fallbackImg?: string,
+): string[] {
   let list: string[] = []
 
   if (Array.isArray(rawImages)) {
@@ -261,7 +266,9 @@ export function parseImages(rawImages: unknown, fallbackImg?: string): string[] 
     // 4. Single URL string
     if (
       list.length === 0 &&
-      (trimmed.startsWith("http") || trimmed.startsWith("/") || trimmed.startsWith("data:"))
+      (trimmed.startsWith("http") ||
+        trimmed.startsWith("/") ||
+        trimmed.startsWith("data:"))
     ) {
       list = [trimmed]
     }
@@ -276,7 +283,11 @@ export function parseImages(rawImages: unknown, fallbackImg?: string): string[] 
     return Array.from(new Set(valid))
   }
 
-  if (fallbackImg && typeof fallbackImg === "string" && !fallbackImg.startsWith("blob:")) {
+  if (
+    fallbackImg &&
+    typeof fallbackImg === "string" &&
+    !fallbackImg.startsWith("blob:")
+  ) {
     return [fallbackImg.trim()]
   }
 
@@ -308,7 +319,9 @@ export function parseProductFromSupabase(item: any): Product {
       // ignore
     }
     // Strip metadata trailer so UI only renders clean description
-    cleanDescription = cleanDescription.replace(/<!--lv_gallery:.*?-->/gs, "").trim()
+    cleanDescription = cleanDescription
+      .replace(/<!--lv_gallery:.*?-->/gs, "")
+      .trim()
   }
 
   // Parse images from item.images (whether array, json, or text)
@@ -326,11 +339,11 @@ export function parseProductFromSupabase(item: any): Product {
   return {
     id: item.id,
     title: item.title,
-    designer: item.designer,
+    designer: item.designer || "",
     price: current,
     buy_price: buy,
     current_price: current,
-    rent: item.rent || "₹0",
+    rent: item.rent || "",
     tag: item.tag || "Bridal",
     available: Boolean(item.available),
     img: coverImg,
@@ -355,13 +368,21 @@ export function formatProductForSupabase(p: Product): Record<string, any> {
   const current = p.current_price || p.price || "₹0"
   const buy = p.buy_price || p.price || current
 
-  const rawImgs = Array.isArray(p.images) && p.images.length > 0 ? p.images : p.img ? [p.img] : []
+  const rawImgs =
+    Array.isArray(p.images) && p.images.length > 0
+      ? p.images
+      : p.img
+        ? [p.img]
+        : []
   const cleanImages = rawImgs.filter(
-    (u): u is string => typeof u === "string" && u.trim().length > 0 && !u.startsWith("blob:"),
+    (u): u is string =>
+      typeof u === "string" && u.trim().length > 0 && !u.startsWith("blob:"),
   )
 
-  const coverImg = p.img && !p.img.startsWith("blob:") ? p.img : cleanImages[0] || ""
-  const finalImages = cleanImages.length > 0 ? cleanImages : coverImg ? [coverImg] : []
+  const coverImg =
+    p.img && !p.img.startsWith("blob:") ? p.img : cleanImages[0] || ""
+  const finalImages =
+    cleanImages.length > 0 ? cleanImages : coverImg ? [coverImg] : []
 
   // Ensure primary cover is first in gallery array
   const orderedImages = [
@@ -379,10 +400,10 @@ export function formatProductForSupabase(p: Product): Record<string, any> {
   return {
     id: String(p.id),
     title: p.title,
-    designer: p.designer,
+    designer: p.designer || "",
     buy_price: buy,
     current_price: current,
-    rent: p.rent || "₹0",
+    rent: p.rent || "",
     tag: p.tag || "Bridal",
     available: p.available ?? true,
     img: coverImg,
@@ -398,6 +419,22 @@ export function formatProductForSupabase(p: Product): Record<string, any> {
   }
 }
 
+export interface UploadImageResult {
+  url: string
+  error?: string
+}
+
+export interface SyncProductResult {
+  success: boolean
+  error?: string
+}
+
+export interface SyncAllProductsResult {
+  success: boolean
+  count: number
+  error?: string
+}
+
 /**
  * Upload an image directly to Supabase Storage with latency-friendly caching headers
  */
@@ -405,7 +442,7 @@ export async function uploadImageToSupabase(
   file: File | Blob,
   fileName: string,
   config?: SupabaseConfig,
-): Promise<{ url: string; error?: string }> {
+): Promise<UploadImageResult> {
   const currentConfig = config || getSavedSupabaseConfig()
   const client = getSupabaseClient(currentConfig)
 
@@ -449,7 +486,7 @@ export async function uploadImageToSupabase(
 export async function syncSingleProductToSupabase(
   product: Product,
   config?: SupabaseConfig,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<SyncProductResult> {
   const client = getSupabaseClient(config)
   if (!client) {
     return {
@@ -477,7 +514,9 @@ export async function syncSingleProductToSupabase(
       if (
         attempt === 0 &&
         (error.message?.toLowerCase().includes("find the table") ||
-          error.message?.toLowerCase().includes("relation \"products\" does not exist") ||
+          error.message
+            ?.toLowerCase()
+            .includes('relation "products" does not exist') ||
           error.code === "PGRST205" ||
           error.code === "42P01")
       ) {
@@ -507,7 +546,10 @@ export async function syncSingleProductToSupabase(
           // If the DB has legacy 'price' column instead of buy_price / current_price:
           if (missingCol === "buy_price" || missingCol === "current_price") {
             const fallbackPrice =
-              currentPayload.current_price || currentPayload.buy_price || product.price || "₹0"
+              currentPayload.current_price ||
+              currentPayload.buy_price ||
+              product.price ||
+              "₹0"
             delete currentPayload.buy_price
             delete currentPayload.current_price
             currentPayload.price = fallbackPrice
@@ -519,10 +561,7 @@ export async function syncSingleProductToSupabase(
       }
 
       // 3. If images column type is text rather than text[] or array
-      if (
-        errMsg.includes("images") &&
-        Array.isArray(currentPayload.images)
-      ) {
+      if (errMsg.includes("images") && Array.isArray(currentPayload.images)) {
         currentPayload.images = JSON.stringify(currentPayload.images)
         continue // Retry with JSON-stringified images
       }
@@ -539,7 +578,10 @@ export async function syncSingleProductToSupabase(
         ("buy_price" in currentPayload || "current_price" in currentPayload)
       ) {
         const fallbackPrice =
-          currentPayload.current_price || currentPayload.buy_price || product.price || "₹0"
+          currentPayload.current_price ||
+          currentPayload.buy_price ||
+          product.price ||
+          "₹0"
         delete currentPayload.buy_price
         delete currentPayload.current_price
         currentPayload.price = fallbackPrice
@@ -565,7 +607,7 @@ export async function syncSingleProductToSupabase(
 export async function syncProductsToSupabase(
   products: Product[],
   config?: SupabaseConfig,
-): Promise<{ success: boolean; count: number; error?: string }> {
+): Promise<SyncAllProductsResult> {
   const client = getSupabaseClient(config)
   if (!client) {
     return {
@@ -578,7 +620,9 @@ export async function syncProductsToSupabase(
   try {
     const formattedList = products.map(formatProductForSupabase)
     let activeTable = "products"
-    let currentPayloadList: Record<string, any>[] = formattedList.map((item) => ({ ...item }))
+    let currentPayloadList: Record<string, any>[] = formattedList.map(
+      (item) => ({ ...item }),
+    )
 
     for (let attempt = 0; attempt < 5; attempt++) {
       let { error: err1 } = await client
@@ -593,7 +637,9 @@ export async function syncProductsToSupabase(
       if (
         attempt === 0 &&
         (err1.message?.toLowerCase().includes("find the table") ||
-          err1.message?.toLowerCase().includes("relation \"products\" does not exist") ||
+          err1.message
+            ?.toLowerCase()
+            .includes('relation "products" does not exist') ||
           err1.code === "PGRST205" ||
           err1.code === "42P01")
       ) {
@@ -619,7 +665,8 @@ export async function syncProductsToSupabase(
         if (currentPayloadList.some((item) => missingCol in item)) {
           if (missingCol === "buy_price" || missingCol === "current_price") {
             currentPayloadList = currentPayloadList.map((item) => {
-              const fallback = item.current_price || item.buy_price || item.price || "₹0"
+              const fallback =
+                item.current_price || item.buy_price || item.price || "₹0"
               const { buy_price: _b, current_price: _c, ...rest } = item
               return { ...rest, price: fallback }
             })
@@ -647,18 +694,26 @@ export async function syncProductsToSupabase(
       }
 
       // 4. Images column missing / error
-      if (errMsg.includes("images") && currentPayloadList.some((item) => "images" in item)) {
-        currentPayloadList = currentPayloadList.map(({ images: _imgs, ...rest }) => rest)
+      if (
+        errMsg.includes("images") &&
+        currentPayloadList.some((item) => "images" in item)
+      ) {
+        currentPayloadList = currentPayloadList.map(
+          ({ images: _imgs, ...rest }) => rest,
+        )
         continue
       }
 
       // 5. buy_price / current_price missing fallback to price
       if (
         (errMsg.includes("buy_price") || errMsg.includes("current_price")) &&
-        currentPayloadList.some((item) => "buy_price" in item || "current_price" in item)
+        currentPayloadList.some(
+          (item) => "buy_price" in item || "current_price" in item,
+        )
       ) {
         currentPayloadList = currentPayloadList.map((item) => {
-          const fallback = item.current_price || item.buy_price || item.price || "₹0"
+          const fallback =
+            item.current_price || item.buy_price || item.price || "₹0"
           const { buy_price: _b, current_price: _c, ...rest } = item
           return { ...rest, price: fallback }
         })
@@ -669,7 +724,11 @@ export async function syncProductsToSupabase(
       return { success: false, count: 0, error: err1.message }
     }
 
-    return { success: false, count: 0, error: "Exceeded max adaptive retry attempts" }
+    return {
+      success: false,
+      count: 0,
+      error: "Exceeded max adaptive retry attempts",
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Database sync error"
     console.warn("Supabase products sync exception:", msg)
@@ -693,7 +752,9 @@ export async function deleteProductFromSupabase(
     if (
       error &&
       (error.message?.toLowerCase().includes("find the table") ||
-        error.message?.toLowerCase().includes("relation \"products\" does not exist"))
+        error.message
+          ?.toLowerCase()
+          .includes('relation "products" does not exist'))
     ) {
       const capRes = await client.from("Products").delete().eq("id", String(id))
       error = capRes.error
@@ -728,7 +789,9 @@ export async function fetchProductsFromSupabase(
     if (
       error &&
       (error.message?.toLowerCase().includes("find the table") ||
-        error.message?.toLowerCase().includes("relation \"products\" does not exist"))
+        error.message
+          ?.toLowerCase()
+          .includes('relation "products" does not exist'))
     ) {
       const capRes = await client
         .from("Products")

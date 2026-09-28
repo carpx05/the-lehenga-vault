@@ -193,7 +193,7 @@ export default function Collections() {
                   }}
                   tabIndex={0}
                   role="button"
-                  aria-label={`View details for ${piece.title} by ${piece.designer}`}
+                  aria-label={`View details for ${piece.title}`}
                   className="group cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#C9A84C] focus:ring-offset-2 focus:ring-offset-[#F5EDD8] transition-all"
                 >
                   <div className="relative aspect-[3/4] overflow-hidden bg-[#EDE3CC]">
@@ -256,70 +256,49 @@ export default function Collections() {
                     <p className="font-serif text-lg text-[#2D2418] font-semibold group-hover:text-[#8B6A3E] transition-colors">
                       {piece.title}
                     </p>
-                    <p className="text-xs text-[#8B6A3E] mt-0.5 tracking-wider">
-                      {piece.designer}
-                    </p>
-                    <div className="flex items-start justify-between mt-3 gap-2">
-                      <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <p className="text-xs text-[#8B6A3E] uppercase tracking-wider">
-                            Buy
-                          </p>
-                          {pricing.hasDiscount && (
-                            <span className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.2 text-[#7A5B2B] bg-[#C9A84C]/20 border border-[#C9A84C]/40 rounded">
-                              Limited Time Discount
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
-                          {pricing.hasDiscount && (
-                            <span className="text-xs text-neutral-400 line-through">
-                              {pricing.buyPrice}
-                            </span>
-                          )}
-                          <p className="font-serif text-base text-[#2D2418] font-semibold">
-                            {pricing.currentPrice}
-                          </p>
-                          {pricing.hasDiscount &&
-                            pricing.discountPercent &&
-                            pricing.discountPercent > 0 && (
-                              <span className="text-[10px] font-semibold text-emerald-700">
-                                ({pricing.discountPercent}% OFF)
-                              </span>
-                            )}
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
+                    <div className="mt-3">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="text-xs text-[#8B6A3E] uppercase tracking-wider">
-                          Rent
+                          Price
                         </p>
-                        <p className="font-serif text-base text-[#8B6A3E] font-medium">
-                          {piece.rent}
+                        {pricing.hasDiscount && (
+                          <span className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.2 text-[#7A5B2B] bg-[#C9A84C]/20 border border-[#C9A84C]/40 rounded">
+                            Limited Time Discount
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
+                        {pricing.hasDiscount && (
+                          <span className="text-xs text-neutral-400 line-through">
+                            {pricing.buyPrice}
+                          </span>
+                        )}
+                        <p className="font-serif text-base text-[#2D2418] font-semibold">
+                          {pricing.currentPrice}
                         </p>
+                        {pricing.hasDiscount &&
+                          pricing.discountPercent &&
+                          pricing.discountPercent > 0 && (
+                            <span className="text-[10px] font-semibold text-emerald-700">
+                              ({pricing.discountPercent}% OFF)
+                            </span>
+                          )}
                       </div>
                     </div>
 
                     {/* Direct quick action WhatsApp options */}
                     <div className="mt-3 pt-2.5 border-t border-[#D4C4A0]/60 flex items-center justify-between text-[11px]">
                       <a
-                        href={buildWhatsAppEnquiryUrl(piece, "buy")}
+                        href={buildWhatsAppEnquiryUrl(piece)}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-[#8B6A3E] hover:text-[#C9A84C] transition-colors font-medium flex items-center gap-1 uppercase tracking-wider"
+                        className="text-[#C9A84C] hover:text-[#B8924A] transition-colors font-semibold flex items-center gap-1.5 uppercase tracking-wider"
                       >
-                        <span>Enquire to Buy</span>
-                      </a>
-                      <span className="text-[#D4C4A0]">·</span>
-                      <a
-                        href={buildWhatsAppEnquiryUrl(piece, "rent")}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-[#C9A84C] hover:text-[#B8924A] transition-colors font-semibold flex items-center gap-1 uppercase tracking-wider"
-                      >
-                        <span>Enquire to Rent</span>
-                        <MessageCircle className="w-3 h-3" />
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>
+                          {piece.available ? "Book / Enquire" : "Join Waitlist"}
+                        </span>
                       </a>
                     </div>
                   </div>

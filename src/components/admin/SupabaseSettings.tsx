@@ -116,11 +116,11 @@ CREATE POLICY "Public Image Delete" ON storage.objects
 CREATE TABLE IF NOT EXISTS public.products (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
-  designer TEXT NOT NULL,
+  designer TEXT,
   buy_price TEXT NOT NULL DEFAULT '₹0',
   current_price TEXT NOT NULL DEFAULT '₹0',
   price TEXT DEFAULT '₹0',
-  rent TEXT NOT NULL,
+  rent TEXT,
   tag TEXT NOT NULL,
   available BOOLEAN DEFAULT true,
   img TEXT NOT NULL,
@@ -137,6 +137,8 @@ CREATE TABLE IF NOT EXISTS public.products (
 
 -- Migration for existing tables:
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[];
+ALTER TABLE public.products ALTER COLUMN designer DROP NOT NULL;
+ALTER TABLE public.products ALTER COLUMN rent DROP NOT NULL;
 UPDATE public.products SET images = ARRAY[img] WHERE (images IS NULL OR array_length(images, 1) IS NULL) AND img IS NOT NULL;
 NOTIFY pgrst, 'reload schema';
 

@@ -14,20 +14,33 @@ import {
 
 const ANALYTICS_STORAGE_KEY = "lehenga_vault_analytics_live_events_v2"
 
+export interface TopPageStat {
+  path: string
+  label: string
+  views: number
+  percentage: number
+}
+
+export interface ReferrerStat {
+  source: string
+  count: number
+  percentage: number
+}
+
 interface AnalyticsContextType {
   events: AnalyticsEvent[]
   totalViews: number
   uniqueVisitors: number
   liveVisitors: number
   dailyStats: DayAnalytics[]
-  topPages: { path: string; label: string; views: number; percentage: number }[]
+  topPages: TopPageStat[]
   deviceStats: {
     device: string
     count: number
     percentage: number
     color: string
   }[]
-  referrerStats: { source: string; count: number; percentage: number }[]
+  referrerStats: ReferrerStat[]
   trackPageView: (pathname: string, title?: string) => void
   clearAnalytics: () => void
   refreshFromCloud: () => Promise<void>
@@ -216,7 +229,13 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   })
 
   // Real Top pages breakdown
-  const pageMap: Record<string, { label: string; count: number }> = {}
+  const pageMap: Record<
+    string,
+    {
+      label: string
+      count: number
+    }
+  > = {}
   const routeLabels: Record<string, string> = {
     "/": "Home Showcase",
     "/collections": "Our Collections",

@@ -49,17 +49,25 @@ export default function ProductModal({
   initialData,
 }: ProductModalProps) {
   const [title, setTitle] = useState(initialData?.title || "")
-  const [designer, setDesigner] = useState(
-    initialData?.designer || "Tarun Tahiliani",
-  )
-  const [customDesigner, setCustomDesigner] = useState("")
+  const [designer, setDesigner] = useState(() => {
+    if (!initialData?.designer) return ""
+    return DESIGNER_PRESETS.includes(initialData.designer)
+      ? initialData.designer
+      : "Other Label"
+  })
+  const [customDesigner, setCustomDesigner] = useState(() => {
+    if (!initialData?.designer) return ""
+    return DESIGNER_PRESETS.includes(initialData.designer)
+      ? ""
+      : initialData.designer
+  })
   const [buyPrice, setBuyPrice] = useState(
     initialData?.buy_price || initialData?.price || "₹65,000",
   )
   const [currentPrice, setCurrentPrice] = useState(
     initialData?.current_price || initialData?.price || "₹65,000",
   )
-  const [rent, setRent] = useState(initialData?.rent || "₹8,500")
+  const [rent, setRent] = useState(initialData?.rent || "")
   const [tag, setTag] = useState(initialData?.tag || "Bridal")
 
   const livePricing = React.useMemo(() => {
@@ -108,13 +116,23 @@ export default function ProductModal({
   React.useEffect(() => {
     if (isOpen) {
       setTitle(initialData?.title || "")
-      setDesigner(initialData?.designer || "Tarun Tahiliani")
-      setCustomDesigner("")
+      if (initialData?.designer) {
+        if (DESIGNER_PRESETS.includes(initialData.designer)) {
+          setDesigner(initialData.designer)
+          setCustomDesigner("")
+        } else {
+          setDesigner("Other Label")
+          setCustomDesigner(initialData.designer)
+        }
+      } else {
+        setDesigner("")
+        setCustomDesigner("")
+      }
       setBuyPrice(initialData?.buy_price || initialData?.price || "₹65,000")
       setCurrentPrice(
         initialData?.current_price || initialData?.price || "₹65,000",
       )
-      setRent(initialData?.rent || "₹8,500")
+      setRent(initialData?.rent || "")
       setTag(initialData?.tag || "Bridal")
       setAvailable(
         initialData?.available !== undefined ? initialData.available : true,
@@ -201,7 +219,9 @@ export default function ProductModal({
               uploadErr instanceof Error
                 ? uploadErr.message
                 : "Storage upload failed"
-            setStatusMessage(`⚠️ [${file.name}] ${errDetail}. Using local preview.`)
+            setStatusMessage(
+              `⚠️ [${file.name}] ${errDetail}. Using local preview.`,
+            )
             newUrls.push(optimized.previewUrl)
           }
         } else {
@@ -289,10 +309,12 @@ export default function ProductModal({
 
     setIsSaving(true)
     try {
-      const finalDesigner =
+      const finalDesigner = (
         designer === "Other Label" && customDesigner ? customDesigner : designer
+      ).trim()
       const formattedBuy = formatCurrency(buyPrice)
       const formattedCurrent = formatCurrency(currentPrice)
+      const formattedRent = rent.trim() ? formatCurrency(rent) : ""
 
       // Clean and sanitize gallery URLs
       const cleanGallery = galleryImages
@@ -300,9 +322,7 @@ export default function ProductModal({
         .filter(Boolean)
 
       // Ensure primary cover image is positioned first in images array
-      const remainingImages = cleanGallery.filter(
-        (url) => url !== primaryCover,
-      )
+      const remainingImages = cleanGallery.filter((url) => url !== primaryCover)
       const finalImagesList = primaryCover
         ? [primaryCover, ...remainingImages]
         : cleanGallery
@@ -314,7 +334,7 @@ export default function ProductModal({
         price: formattedCurrent,
         buy_price: formattedBuy,
         current_price: formattedCurrent,
-        rent: formatCurrency(rent),
+        rent: formattedRent,
         tag,
         available,
         img: primaryCover,
@@ -381,13 +401,14 @@ export default function ProductModal({
 
             <div>
               <label className="block text-xs uppercase tracking-widest text-[#5C3D1E] font-medium mb-1.5">
-                Designer Label *
+                Designer Label (Optional)
               </label>
               <select
                 value={designer}
                 onChange={(e) => setDesigner(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-[#FAF6ED] border border-[#D4C4A0] text-[#2D2418] text-sm focus:outline-none focus:border-[#C9A84C]"
               >
+                <option value="">-- No Designer Specified --</option>
                 {DESIGNER_PRESETS.map((d) => (
                   <option key={d} value={d}>
                     {d}
@@ -471,18 +492,17 @@ export default function ProductModal({
 
             <div>
               <label className="block text-xs uppercase tracking-widest text-[#5C3D1E] font-medium mb-1.5">
-                Rental Price (₹ / 3-5 days) *
+                Rental Price (₹ / 3-5 days) (Optional)
               </label>
               <input
                 type="text"
-                required
                 value={rent}
                 onChange={(e) => setRent(e.target.value)}
-                placeholder="₹8,500"
+                placeholder="e.g. ₹8,500 (optional)"
                 className="w-full px-3.5 py-2.5 bg-[#FAF6ED] border border-[#D4C4A0] text-[#2D2418] text-sm focus:outline-none focus:border-[#C9A84C]"
               />
               <p className="text-[10px] text-[#8B6A3E] mt-1">
-                Rental fee for booking
+                Optional internal rental rate
               </p>
             </div>
 

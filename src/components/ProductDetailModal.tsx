@@ -208,15 +208,17 @@ export default function ProductDetailModal({
           {/* Right Column: Piece Specifications & Conversion Funnel */}
           <div className="p-6 sm:p-8 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
-              {/* Eyebrow & Designer */}
+              {/* Eyebrow & Title */}
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] tracking-[0.3em] uppercase text-[#8B6A3E] font-semibold">
-                    {piece.designer}
-                  </span>
+                  {piece.tag && (
+                    <span className="text-[10px] tracking-[0.3em] uppercase text-[#8B6A3E] font-semibold">
+                      {piece.tag}
+                    </span>
+                  )}
                   {piece.sku && (
                     <>
-                      <span className="text-[#D4C4A0]">•</span>
+                      {piece.tag && <span className="text-[#D4C4A0]">•</span>}
                       <span className="text-[10px] font-mono text-[#8B6A3E] uppercase tracking-wider">
                         {piece.sku}
                       </span>
@@ -231,12 +233,12 @@ export default function ProductDetailModal({
                 </h2>
               </div>
 
-              {/* Dual Pricing Card */}
+              {/* Pricing Card */}
               <div className="bg-[#EDE3CC]/60 border border-[#D4C4A0] p-4 space-y-2">
-                <div className="flex items-baseline justify-between gap-2 border-b border-[#D4C4A0]/60 pb-2.5">
+                <div className="flex items-baseline justify-between gap-2">
                   <div>
                     <span className="text-[10px] uppercase tracking-wider text-[#8B6A3E] font-medium block">
-                      Purchase Price (Buy)
+                      Price
                     </span>
                     <div className="flex items-baseline gap-2 mt-0.5">
                       {pricing.hasDiscount && (
@@ -244,7 +246,7 @@ export default function ProductDetailModal({
                           {pricing.buyPrice}
                         </span>
                       )}
-                      <span className="font-serif text-xl font-semibold text-[#2D2418]">
+                      <span className="font-serif text-2xl font-semibold text-[#2D2418]">
                         {pricing.currentPrice}
                       </span>
                       {pricing.hasDiscount && pricing.discountPercent && (
@@ -254,22 +256,10 @@ export default function ProductDetailModal({
                       )}
                     </div>
                   </div>
-
-                  <div className="text-right">
-                    <span className="text-[10px] uppercase tracking-wider text-[#8B6A3E] font-medium block">
-                      Rental Price
-                    </span>
-                    <p className="font-serif text-xl font-semibold text-[#8B6A3E] mt-0.5">
-                      {piece.rent}
-                    </p>
-                    <span className="text-[10px] text-[#8B6A3E]">
-                      per 3-5 days
-                    </span>
-                  </div>
                 </div>
 
                 {pricing.hasDiscount && pricing.discountSavings && (
-                  <p className="text-[11px] text-emerald-800 font-medium flex items-center gap-1.5 pt-1">
+                  <p className="text-[11px] text-emerald-800 font-medium flex items-center gap-1.5 pt-1 border-t border-[#D4C4A0]/60">
                     <Sparkles className="w-3.5 h-3.5 text-[#C9A84C]" />
                     <span>
                       Limited time savings: ₹
@@ -325,7 +315,7 @@ export default function ProductDetailModal({
               <div className="flex items-center gap-4 text-[11px] text-[#8B6A3E] pt-2">
                 <div className="flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#C9A84C]" />
-                  <span>100% Designer Verified</span>
+                  <span>100% Quality Verified</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Tag className="w-3.5 h-3.5 text-[#C9A84C]" />
@@ -350,26 +340,6 @@ export default function ProductDetailModal({
                     : "Join Waitlist via WhatsApp"}
                 </span>
               </a>
-
-              {/* Dual Buy vs Rent Specific Enquiries */}
-              <div className="grid grid-cols-2 gap-2">
-                <a
-                  href={buildWhatsAppEnquiryUrl(piece, "buy")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="py-2.5 px-3 border border-[#D4C4A0] hover:border-[#2D2418] text-[#2D2418] hover:bg-[#2D2418] hover:text-[#FAF6ED] text-[11px] uppercase tracking-wider font-medium transition-all text-center"
-                >
-                  Enquire to Buy
-                </a>
-                <a
-                  href={buildWhatsAppEnquiryUrl(piece, "rent")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="py-2.5 px-3 border border-[#D4C4A0] hover:border-[#8B6A3E] text-[#8B6A3E] hover:bg-[#EDE3CC] text-[11px] uppercase tracking-wider font-semibold transition-all text-center"
-                >
-                  Enquire to Rent
-                </a>
-              </div>
 
               {/* Atelier Trial Link */}
               <div className="text-center pt-1">

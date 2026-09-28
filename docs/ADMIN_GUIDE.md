@@ -77,7 +77,8 @@ Located in the **"Vault Inventory"** tab (`InventoryManager.tsx`):
   - Automatically runs client-side image compression (WebP).
   - Automatically generates an ultra-low-latency 40px blur thumbnail.
   - Uploads directly to the Supabase `lehenga-images` bucket.
-  - Supports Purchase Price and Rental Price.
+  - **Optional Designer & Rent Fields**: Designer Label and Rental Price are optional inventory fields. When entered, they remain stored internally for boutique catalog tracking but are kept completely hidden from public customer-facing cards and modals.
+  - Supports Purchase Price and optional internal Rental Price.
 - **Edit & Delete**: Safe editing and confirmation modal for product deletion.
 - **Storefront Collections Pagination**:
   - Storefront (`/collections`) displays the top 10 items by default on Page 1.

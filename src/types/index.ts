@@ -14,11 +14,11 @@ export type ProductCategory = typeof PRODUCT_CATEGORIES[number]
 export interface Product {
   id: string | number
   title: string
-  designer: string
+  designer?: string
   price: string
   buy_price?: string
   current_price?: string
-  rent: string
+  rent?: string
   tag: string
   available: boolean
   img: string
